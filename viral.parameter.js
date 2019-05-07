@@ -491,10 +491,10 @@ let mod = {
         },
         XLH2O : {       // +100% repair and build effectiveness without increasing the energy cost
             allocate: true,
-            allocateRooms: ['E28S25'],
+            allocateRooms: [],
             roomThreshold: 9000,
             amount: 3000,
-            storeTo: 'lab',
+            storeTo: 'storage',
             labRefilledAt: 1500
         },
         power : {

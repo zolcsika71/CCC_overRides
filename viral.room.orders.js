@@ -702,8 +702,7 @@ mod.extend = function () {
                         return 0;
                 },
                 // TODO ?
-                terminalOrder = resources.terminal[0].orders.length > 0 ?
-                    global.sumCompoundType(resources.terminal[0].orders, 'orderRemaining')[mineral] || 0 : 0,
+                terminalOrder = resources.terminal[0].orders.length > 0 ? global.sumCompoundType(resources.terminal[0].orders, 'orderRemaining')[mineral] || 0 : 0,
                 transferAmount = validRoomMineral + validNotRoomMineral + validCompound();
 
 
