@@ -574,12 +574,26 @@ mod.extend = function () {
                     if (mineral === RESOURCE_POWER || cloakedMinerals(mineral))
                         continue;
 
-                    if (
+                    if (mineral.length > 1 && global.SELL_COMPOUND[mineral]) {
 
-                        (mineral === that.memory.mineralType && this.storage.store[mineral] >= global.MAX_STORAGE_MINERAL && this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)
+                        if (global.SELL_COMPOUND[mineral].sell) {
+                            global.logSystem(that.name, `making sell order for ${that.terminal.store[mineral]} ${mineral}`)
+                            // global.sumCompoundType(resources.terminal[0].orders, 'orderRemaining')[mineral] === 0 => terminal order completed
+
+
+                        } else if (that.nuked) {
+                            global.logSystem(that.name, `making URGENT sell order for ${that.terminal.store[mineral]} ${mineral}`)
+                        } else
+                            continue;
+                    }
+
+                    else if
+
+                    (
+                        (mineral === that.memory.mineralType && this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)
                         || (mineral === RESOURCE_ENERGY && this.storage.store[RESOURCE_ENERGY] >= global.MAX_STORAGE_ENERGY[8] * 1.2 && this.terminal.store[RESOURCE_ENERGY] >= global.TERMINAL_ENERGY * 0.8)
-                        || (mineral !== that.memory.mineralType && mineral !== RESOURCE_ENERGY && this.storage.store[mineral] >= global.MAX_STORAGE_NOT_ROOM_MINERAL && this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)
-                        || (this.nuked && global.SELL_COMPOUND[mineral])
+                        || (mineral !== that.memory.mineralType && mineral !== RESOURCE_ENERGY && mineral !== 'G' && this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)
+                        //|| (this.nuked && global.SELL_COMPOUND[mineral] && this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)
                     ) {
 
                         let orders = Game.market.getAllOrders(o => {
@@ -673,7 +687,7 @@ mod.extend = function () {
         if (!this.my || !this.terminal || !this.storage)
             return;
 
-        console.log(`NUKED: ${this.nuked}`);
+        //console.log(`NUKED: ${this.nuked}`);
 
         let that = this,
             resources = that.memory.resources;
@@ -683,44 +697,53 @@ mod.extend = function () {
 
             //global.logSystem(that.name, `${mineral}: ${amount}`);
 
-            let freeSpace = TERMINAL_CAPACITY - global.TERMINAL_ENERGY + that.terminal.store[RESOURCE_ENERGY] - _.sum(that.terminal.store) - (resources.terminal[0].orders.length > 0 ?
-                _.sum(resources.terminal[0].orders, order => {
-                    return order.orderRemaining;
-                }) : 0),
-                offered = that.resourcesOffers[mineral] || 0,
-                inReaction = that.resourcesReactions[mineral] || 0,
-                validRoomMineral = amount >= global.MAX_STORAGE_MINERAL - offered - inReaction + 1550 && mineral === that.memory.mineralType ?
-                    amount - global.MAX_STORAGE_MINERAL - offered - inReaction : 0,
-                validNotRoomMineral = amount >= global.MAX_STORAGE_NOT_ROOM_MINERAL - offered - inReaction + 1550 && mineral !== that.memory.mineralType && mineral !== 'G' && mineral.length === 1 ?
-                    amount - global.MAX_STORAGE_NOT_ROOM_MINERAL - offered - inReaction : 0,
-                validCompound = function () {
-                    if (that.nuked && global.SELL_COMPOUND[mineral] && mineral !== 'XLH2O')
-                        return amount;
-                    else if (global.SELL_COMPOUND[mineral] && global.SELL_COMPOUND[mineral].sell && amount >= global.SELL_COMPOUND[mineral].maxStorage - offered - inReaction + 1550)
-                        return amount - global.SELL_COMPOUND[mineral].maxStorage - offered - inReaction;
-                    else
-                        return 0;
-                },
-                // TODO ?
-                terminalOrder = resources.terminal[0].orders.length > 0 ? global.sumCompoundType(resources.terminal[0].orders, 'orderRemaining')[mineral] || 0 : 0,
-                transferAmount = validRoomMineral + validNotRoomMineral + validCompound();
+            if (mineral !== RESOURCE_ENERGY && mineral !== RESOURCE_POWER) {
+
+                let freeSpace = TERMINAL_CAPACITY - global.TERMINAL_ENERGY + that.terminal.store[RESOURCE_ENERGY] - _.sum(that.terminal.store) - (resources.terminal[0].orders.length > 0 ?
+                    _.sum(resources.terminal[0].orders, order => {
+                        return order.orderRemaining;
+                    }) : 0),
+                    offered = that.resourcesOffers[mineral] || 0,
+                    inReaction = that.resourcesReactions[mineral] || 0,
+                    validRoomMineral = amount >= global.MAX_STORAGE_MINERAL + offered + inReaction + 1550 && mineral === that.memory.mineralType ?
+                        amount - global.MAX_STORAGE_MINERAL - offered - inReaction : 0,
+                    validNotRoomMineral = amount >= global.MAX_STORAGE_NOT_ROOM_MINERAL + offered + inReaction + 1550 && mineral !== that.memory.mineralType && mineral !== 'G' && mineral.length === 1 ?
+                        amount - global.MAX_STORAGE_NOT_ROOM_MINERAL - offered - inReaction : 0,
+                    validCompound = function () {
+                        // TODO count the number of nuke (damage center: 10M, others: 5M, radius: 5) and if ramparts hits < nuke.damage
+                        // for sale
+                        if (that.nuked && global.SELL_COMPOUND[mineral] && mineral !== 'XLH2O')
+                            return amount;
+                        else if (global.SELL_COMPOUND[mineral] && global.SELL_COMPOUND[mineral].sell && amount >= global.SELL_COMPOUND[mineral].maxStorage + offered + 1550
+                            && (_.some(global.SELL_COMPOUND[mineral].rooms, room => {
+                            return room === that.name;
+                            }) || global.SELL_COMPOUND[mineral].rooms.length === 0)
+                        )
+                            return amount - global.SELL_COMPOUND[mineral].maxStorage - offered;
+                        else
+                            return 0;
+                    },
+                    // TODO terminalOrder needed?
+                    terminalOrder = resources.terminal[0].orders.length > 0 ? global.sumCompoundType(resources.terminal[0].orders, 'orderRemaining')[mineral] || 0 : 0,
+                    transferAmount = validRoomMineral + validNotRoomMineral + validCompound();
 
 
-            //if (that.name === 'E16S27')
-            //    global.logSystem(that.name, `${mineral}: ${amount} ${validRoomMineral} ${validNotRoomMineral} ${validCompound} ${terminalOrder}`);
+                //if (that.name === 'E16S27')
+                //    global.logSystem(that.name, `${mineral}: ${amount} ${validRoomMineral} ${validNotRoomMineral} ${validCompound} ${terminalOrder}`);
 
-            if (transferAmount >= global.MIN_OFFER_AMOUNT) {
+                if (transferAmount >= global.MIN_OFFER_AMOUNT) {
 
-                //console.log(`${that.name} freeTerminalSpace: ${freeSpace} mineral: ${mineral} transferAmount: ${transferAmount}`);
+                    //console.log(`${that.name} freeTerminalSpace: ${freeSpace} mineral: ${mineral} transferAmount: ${transferAmount}`);
 
-                if (freeSpace >= transferAmount) {
-                    that.placeOrder(that.terminal.id, mineral, transferAmount);
-                    global.logSystem(that.name, `${mineral} ${transferAmount}`);
+                    if (freeSpace >= transferAmount) {
+                        that.placeOrder(that.terminal.id, mineral, transferAmount);
+                        global.logSystem(that.name, `${mineral} ${transferAmount}`);
 
-                } else if (freeSpace >= global.MIN_MINERAL_SELL_AMOUNT) {
-                    // try max amount
-                    that.placeOrder(that.terminal.id, mineral, freeSpace);
-                    global.logSystem(that.name, `${mineral} ${freeSpace} - terminalFull`);
+                    } else if (freeSpace >= global.MIN_MINERAL_SELL_AMOUNT) {
+                        // try max amount
+                        that.placeOrder(that.terminal.id, mineral, freeSpace);
+                        global.logSystem(that.name, `${mineral} ${freeSpace} - terminalFull, and transferAmount would be: ${transferAmount}`);
+                    }
                 }
             }
         });
