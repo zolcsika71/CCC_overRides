@@ -580,16 +580,11 @@ mod.extend = function () {
                             global.logSystem(that.name, `making sell order for ${that.terminal.store[mineral]} ${mineral}`)
                             // global.sumCompoundType(resources.terminal[0].orders, 'orderRemaining')[mineral] === 0 => terminal order completed
 
-
                         } else if (that.nuked) {
                             global.logSystem(that.name, `making URGENT sell order for ${that.terminal.store[mineral]} ${mineral}`)
                         } else
                             continue;
-                    }
-
-                    else if
-
-                    (
+                    } else if (
                         (mineral === that.memory.mineralType && this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)
                         || (mineral === RESOURCE_ENERGY && this.storage.store[RESOURCE_ENERGY] >= global.MAX_STORAGE_ENERGY[8] * 1.2 && this.terminal.store[RESOURCE_ENERGY] >= global.TERMINAL_ENERGY * 0.8)
                         || (mineral !== that.memory.mineralType && mineral !== RESOURCE_ENERGY && mineral !== 'G' && this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)
@@ -699,7 +694,7 @@ mod.extend = function () {
 
             if (mineral !== RESOURCE_ENERGY && mineral !== RESOURCE_POWER) {
 
-                let freeSpace = TERMINAL_CAPACITY - global.TERMINAL_ENERGY + that.terminal.store[RESOURCE_ENERGY] - _.sum(that.terminal.store) - (resources.terminal[0].orders.length > 0 ?
+                let freeSpace = TERMINAL_CAPACITY - global.TERMINAL_FREESPACE - global.TERMINAL_ENERGY + that.terminal.store[RESOURCE_ENERGY] - _.sum(that.terminal.store) - (resources.terminal[0].orders.length > 0 ?
                     _.sum(resources.terminal[0].orders, order => {
                         return order.orderRemaining;
                     }) : 0),
@@ -728,8 +723,8 @@ mod.extend = function () {
                     transferAmount = validRoomMineral + validNotRoomMineral + validCompound();
 
 
-                //if (that.name === 'E16S27')
-                //    global.logSystem(that.name, `${mineral}: ${amount} ${validRoomMineral} ${validNotRoomMineral} ${validCompound} ${terminalOrder}`);
+                //if (that.name === 'E15S3')
+                //    global.logSystem(that.name, `${mineral}: ${amount} validRoomMineral: ${validRoomMineral} validNotRoomMineral: ${validNotRoomMineral} validCompound: ${validCompound()} terminalOrder: ${terminalOrder}`);
 
                 if (transferAmount >= global.MIN_OFFER_AMOUNT) {
 
