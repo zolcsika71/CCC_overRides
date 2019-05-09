@@ -45,7 +45,7 @@ mod.strategies = {
                 console.log('BOOSTING');
                 for (let category in BOOSTS) {
 
-                    if (category !== 'attack' || category !== 'ranged_attack' || category !== 'heal' || category !== 'move'  || category !== 'tough')
+                    if (category !== 'attack' || category !== 'ranged_attack' || category !== 'heal' || category !== 'move' || category !== 'tough')
                         continue;
 
                     for (let compound in BOOSTS[category]) {

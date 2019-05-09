@@ -16,12 +16,6 @@ action.newTarget = function (creep) {
     var that = this;
     var isAddable = target => that.isAddableTarget(target, creep);
 
-    if (creep.room.name === 'E28S25') {
-        //global.logSystem(creep.room.name, `isAddableTarget: ${isAddable}`);
-        global.logSystem(creep.room.name, `is Addable for fortify: ${_.find(creep.room.structures.fortifyable, isAddable)}`);
-    }
-
-
     return _.find(creep.room.structures.fortifyable, isAddable);
 };
 action.work = function (creep) {

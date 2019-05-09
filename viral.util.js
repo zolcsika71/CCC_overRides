@@ -237,21 +237,6 @@ viralUtil.mineralFull = function () {
             console.log(room.name, mineralType);
     }
 };
-
-viralUtil.remoteMiningRooms = function () {
-
-    let myRooms = _.filter(Game.rooms, room => {
-        return room.my && room.storage && room.terminal;
-    });
-
-    for (let room of myRooms)
-        room.terminalOrderToSell();
-
-
-
-};
-
-
 viralUtil.allocatedRooms = function () {
 
     let myRooms = _.filter(Game.rooms, room => {

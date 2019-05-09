@@ -537,10 +537,13 @@ mod.extend = function () {
 
                 let data = this.memory.resources,
                     returnValue,
+                    sellOrders = function (mineral) {
+                        return Game.market.getAllOrders(order => {
+                            return order.type === ORDER_SELL && order.resourceType === mineral;
+                        })
+                    },
                     cloakedMinerals = function (mineral) {
-
-
-                        // TODO count unnecessary amount
+                    // TODO count unnecessary amount
 
                         if (_.isUndefined(data))
                             return false;
@@ -578,7 +581,8 @@ mod.extend = function () {
 
                         if (global.SELL_COMPOUND[mineral].sell) {
                             global.logSystem(that.name, `making sell order for ${that.terminal.store[mineral]} ${mineral}`)
-                            // global.sumCompoundType(resources.terminal[0].orders, 'orderRemaining')[mineral] === 0 => terminal order completed
+                            global.BB(sellOrders(mineral));
+                            // global.sumCompoundType(data.terminal[0].orders, 'orderRemaining')[mineral] === 0 => terminal order completed
 
                         } else if (that.nuked) {
                             global.logSystem(that.name, `making URGENT sell order for ${that.terminal.store[mineral]} ${mineral}`)

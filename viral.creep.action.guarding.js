@@ -21,11 +21,11 @@ action.newTarget = function (creep) {
     if (Room.isSKRoom(creep.pos.roomName) && creep.pos.roomName === creep.flag.pos.roomName) {
 
         let SKCreeps = [],
-            anotherHostiles = _.filter(creep.room.hostiles, hostile => {
+            otherHostiles = _.filter(creep.room.hostiles, hostile => {
                 return hostile.owner.username !== 'Source Keeper';
             });
 
-        if (anotherHostiles.length === 0) {
+        if (otherHostiles.length === 0) {
 
             SKCreeps = _.filter(creep.room.hostiles, hostile => {
                 return hostile.owner.username === 'Source Keeper' && (!hostile.targetOf || hostile.targetOf.length === 0);
@@ -38,9 +38,9 @@ action.newTarget = function (creep) {
             else if (SKCreeps.length === 0)
                 return _.min(creep.room.find(FIND_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_KEEPER_LAIR}), 'ticksToSpawn');
 
-        } else if (anotherHostiles.length > 0) {
+        } else if (otherHostiles.length > 0) {
             //global.logSystem(creep.room.name, `GUARD ATTACKING A HOSTILE creep!`);
-            return creep.pos.findClosestByPath(anotherHostiles);
+            return creep.pos.findClosestByPath(otherHostiles);
         }
     }
 
