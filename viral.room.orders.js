@@ -15,6 +15,42 @@ mod.analyzeRoom = function (room, needMemoryResync) {
 };
 mod.extend = function () {
 
+    /*
+    Object.defineProperties(Game.market, {
+        'sellOrders': {
+            configurable: true,
+            get() {
+                if (_.isUndefined(this._sellOrders)) {
+
+                    this._sellOrders = [];
+
+                    this._sellOrders = this.getAllOrders(order => {
+                        return order.type === ORDER_SELL;
+                    })
+
+                }
+                return this._sellOrders;
+            }
+        },
+        'buyOrders': {
+            configurable: true,
+            get() {
+                if (_.isUndefined(this._buyOrders)) {
+
+                    this._buyOrders = [];
+
+                    this._buyOrders = this.getAllOrders(order => {
+                        return order.type === ORDER_BUY;
+                    })
+
+                }
+                return this._buyOrders;
+            }
+
+        }
+    });
+*/
+
     Room.prototype.updateResourceOrders = function () {
         let data = this.memory.resources;
         if (!this.my || !data) return;
@@ -538,9 +574,7 @@ mod.extend = function () {
                 let data = this.memory.resources,
                     returnValue,
                     sellOrders = function (mineral) {
-                        return Game.market.getAllOrders(order => {
-                            return order.type === ORDER_SELL && order.resourceType === mineral;
-                        })
+                        return Game.market.getAllOrders({resourceType: mineral, type: ORDER_SELL});
                     },
                     cloakedMinerals = function (mineral) {
                     // TODO count unnecessary amount
@@ -570,6 +604,19 @@ mod.extend = function () {
                             };
 
                         return offerMineral || orderMineral || reactionMineral(mineral);
+                    },
+                    makeSellOrder = function (mineral) {
+
+                        let mineralSellOrders = sellOrders(mineral);
+                        global.BB(mineralSellOrders);
+
+
+
+
+                        // count average sell price
+
+
+
                     };
 
                 for (const mineral in this.terminal.store) {
@@ -581,7 +628,7 @@ mod.extend = function () {
 
                         if (global.SELL_COMPOUND[mineral].sell) {
                             global.logSystem(that.name, `making sell order for ${that.terminal.store[mineral]} ${mineral}`)
-                            global.BB(sellOrders(mineral));
+                            makeSellOrder(mineral);
                             // global.sumCompoundType(data.terminal[0].orders, 'orderRemaining')[mineral] === 0 => terminal order completed
 
                         } else if (that.nuked) {
@@ -595,9 +642,9 @@ mod.extend = function () {
                         //|| (this.nuked && global.SELL_COMPOUND[mineral] && this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)
                     ) {
 
-                        let orders = Game.market.getAllOrders(o => {
+                        let orders = sellOrders(mineral) (o => {
 
-                            if (!o.roomName || o.type !== 'buy')
+                            if (!o.roomName)
                                 return false;
 
                             if (o.resourceType !== mineral)
