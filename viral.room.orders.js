@@ -642,12 +642,9 @@ mod.extend = function () {
                         //|| (this.nuked && global.SELL_COMPOUND[mineral] && this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)
                     ) {
 
-                        let orders = sellOrders(mineral) (o => {
+                        let orders = _.filter(sellOrders(mineral), o => {
 
                             if (!o.roomName)
-                                return false;
-
-                            if (o.resourceType !== mineral)
                                 return false;
 
                             if (o.resourceType !== RESOURCE_ENERGY && o.amount < global.MIN_MINERAL_SELL_AMOUNT)
@@ -696,7 +693,7 @@ mod.extend = function () {
                             return returnValue
                         });
 
-                        if (orders.length > 0) {
+                        if (orders && orders.length > 0) {
                             global.logSystem(that.name, `no.: ${numberOfTransactions.count} ${that.name} selling: ${mineral} terminalFull: ${terminalFull} storageFull: ${storageFull}`);
                             order = _.max(orders, 'ratio');
                             if (global.DEBUG) {
