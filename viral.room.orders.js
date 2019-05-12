@@ -15,42 +15,6 @@ mod.analyzeRoom = function (room, needMemoryResync) {
 };
 mod.extend = function () {
 
-    /*
-    Object.defineProperties(Game.market, {
-        'sellOrders': {
-            configurable: true,
-            get() {
-                if (_.isUndefined(this._sellOrders)) {
-
-                    this._sellOrders = [];
-
-                    this._sellOrders = this.getAllOrders(order => {
-                        return order.type === ORDER_SELL;
-                    })
-
-                }
-                return this._sellOrders;
-            }
-        },
-        'buyOrders': {
-            configurable: true,
-            get() {
-                if (_.isUndefined(this._buyOrders)) {
-
-                    this._buyOrders = [];
-
-                    this._buyOrders = this.getAllOrders(order => {
-                        return order.type === ORDER_BUY;
-                    })
-
-                }
-                return this._buyOrders;
-            }
-
-        }
-    });
-*/
-
     Room.prototype.updateResourceOrders = function () {
         let data = this.memory.resources;
         if (!this.my || !data) return;
@@ -573,11 +537,8 @@ mod.extend = function () {
 
                 let data = this.memory.resources,
                     returnValue,
-                    sellOrders = function (mineral) {
-                        return Game.market.getAllOrders({resourceType: mineral, type: ORDER_SELL});
-                    },
                     cloakedMinerals = function (mineral) {
-                    // TODO count unnecessary amount
+                        // TODO count unnecessary amount
 
                         if (_.isUndefined(data))
                             return false;
@@ -607,16 +568,63 @@ mod.extend = function () {
                     },
                     makeSellOrder = function (mineral) {
 
-                        let mineralSellOrders = sellOrders(mineral);
-                        global.BB(mineralSellOrders);
+                        let mineralSellOrders = global._sellOrders(mineral),
+                            sellOrderExists = _.some(mineralSellOrders, sellOrders => {
+                                return sellOrders.roomName === that.name;
+                            }),
+                            amount = function (mineral) {
+                                if (that.terminal.store[mineral] > global.COMPOUND_SELL_AMOUNT)
+                                    return global.COMPOUND_SELL_AMOUNT;
+                                else
+                                    return that.terminal.store[mineral];
+                            },
+                            terminalOrderCompleted = sumCompoundType(data.terminal[0].orders, 'orderRemaining')[mineral] === 0;
 
+                        if (terminalOrderCompleted && !sellOrderExists) {
 
+                            let minPrice,
+                                averagePrice,
+                                sellAmount,
+                                returnValue;
 
+                            if (global.SELL_COMPOUND[mineral].urgent) {
 
-                        // count average sell price
+                                if (mineralSellOrders)
+                                    minPrice = global.roundUp(_.min(mineralSellOrders, 'price').price - 0.01, 3);
+                                else
+                                    minPrice = global.SELL_COMPOUND[mineral].defaultPrice;
 
+                                sellAmount = amount(mineral);
 
+                                //global.logSystem(that.name, `terminalOrderCompleted: ${terminalOrderCompleted} sellOrderExists: ${sellOrderExists} type: ${ORDER_SELL}, resourceType: ${mineral} price: ${minPrice} totalAmount: ${sellAmount}, roomName: ${that.name}`);
 
+                                returnValue = Game.market.createOrder(ORDER_SELL, mineral, minPrice, sellAmount, that.name);
+
+                                if (returnValue === OK)
+                                    global.logSystem(that.name, `sell order created for => resourceType: ${mineral} price: ${minPrice} totalAmount: ${sellAmount}`);
+                                else
+                                    global.logSystem(that.name, `sell order FAILED for => resourceType: ${mineral} price: ${minPrice} totalAmount: ${sellAmount} errorCode: ${returnValue}`);
+
+                            } else {
+
+                                if (mineralSellOrders)
+                                    averagePrice = global.roundUp(_.sum(mineralSellOrders, 'price') / mineralSellOrders.length, 3);
+                                else
+                                    averagePrice = global.SELL_COMPOUND[mineral].defaultPrice;
+
+                                sellAmount = amount(mineral);
+
+                                //global.logSystem(that.name, `terminalOrderCompleted: ${terminalOrderCompleted} sellOrderExists: ${sellOrderExists} type: ${ORDER_SELL}, resourceType: ${mineral} price: ${averagePrice} totalAmount: ${sellAmount}, roomName: ${that.name}`);
+
+                                returnValue = Game.market.createOrder(ORDER_SELL, mineral, averagePrice, sellAmount, that.name);
+
+                                if (returnValue === OK)
+                                    global.logSystem(that.name, `sell order created for => resourceType: ${mineral} price: ${averagePrice} totalAmount: ${sellAmount}`);
+                                else
+                                    global.logSystem(that.name, `sell order FAILED for => resourceType: ${mineral} price: ${averagePrice} totalAmount: ${sellAmount} errorCode: ${returnValue}`);
+
+                            }
+                        }
                     };
 
                 for (const mineral in this.terminal.store) {
@@ -642,7 +650,7 @@ mod.extend = function () {
                         //|| (this.nuked && global.SELL_COMPOUND[mineral] && this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)
                     ) {
 
-                        let orders = _.filter(sellOrders(mineral), o => {
+                        let orders = _.filter(global._buyOrders(mineral), o => {
 
                             if (!o.roomName)
                                 return false;
@@ -759,7 +767,7 @@ mod.extend = function () {
                             return amount;
                         else if (global.SELL_COMPOUND[mineral] && global.SELL_COMPOUND[mineral].sell && amount >= global.SELL_COMPOUND[mineral].maxStorage + offered + 1550
                             && (_.some(global.SELL_COMPOUND[mineral].rooms, room => {
-                            return room === that.name;
+                                return room === that.name;
                             }) || global.SELL_COMPOUND[mineral].rooms.length === 0)
                         )
                             return amount - global.SELL_COMPOUND[mineral].maxStorage - offered;

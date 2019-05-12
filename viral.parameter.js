@@ -103,21 +103,21 @@ let mod = {
         },
         XUH2O: {    // +300% attack effectiveness
             sell: true,
-            urgent: false,
+            urgent: true,
             defaultPrice: 1,
             rooms: ['E15S3'],
             maxStorage: 20000
         },
         XKHO2: {    // +300% rangedAttack and rangedMassAttack effectiveness
             sell: true,
-            urgent: false,
+            urgent: true,
             defaultPrice: 1,
             rooms: ['E15S3'],
             maxStorage: 20000
         },
         XLHO2: {    // +300% heal and rangedHeal effectiveness
             sell: true,
-            urgent: false,
+            urgent: true,
             defaultPrice: 1,
             rooms: ['E15S3'],
             maxStorage: 20000
@@ -169,7 +169,7 @@ let mod = {
     FILL_POWERSPAWN: true,
     MIN_MINERAL_SELL_AMOUNT: 5000,
     MIN_ENERGY_SELL_AMOUNT: 3000,
-    //MIN_COMPOUND_SELL_AMOUNT: 1000,
+    COMPOUND_SELL_AMOUNT: 10000,
     ENERGY_VALUE_CREDITS: 0.05, // assumed energy exchange rate (in credits) to determine best mineral sell offer
     //MAX_SELL_RANGE: 60,
     TERMINAL_ENERGY: 100000,
@@ -245,7 +245,13 @@ let mod = {
     USE_SUMMERTIME: true, // Please define isSummerTime in global.js to suit to your local summertime rules
     SPAWN_DEFENSE_ON_ATTACK: true, // This will attempt to store enough to have a defense and spawn troops when invaded.
     MANAGED_CONTAINER_TRIGGER: 0.25, // managed containers get filled below this relative energy amount and emptied when above 1-this value
-    ROUTE_ROOM_COST: { 'shard0':{}}, // custom room routing cost: e.g. `{'shard0':{ 'W0N0':5, 'W4N4': 11 },'shard1':...}`. Affects bestSpawnRoomFor, Creep.Setup calculations, and travel cost predictions. Please call 'delete Memory.routeRange;' whenever you change this property.
+    ROUTE_ROOM_COST: // custom room routing cost: e.g. `{'shard0':{ 'W0N0':5, 'W4N4': 11 },'shard1':...}`. Affects bestSpawnRoomFor, Creep.Setup calculations, and travel cost predictions. Please call 'delete Memory.routeRange;' whenever you change this property.
+        {
+            'shard1': {
+                'E15S4': 100,
+                'E25S26': 100
+            }
+        },
     TRAVELLING_BORDER_RANGE: 22, // room arrival distance for travelling and routes
     NOTIFICATE_INVADER: false, // Also log common 'Invader' hostiles
     NOTIFICATE_INTRUDER: true, // Log any hostiles in your rooms
@@ -421,7 +427,7 @@ let mod = {
             roomThreshold: 9000,
             amount: 3000,
             rooms: []
-        },
+        }
     },
     TRADE_THRESHOLD: 1000,
     MIN_OFFER_AMOUNT: 100,
@@ -543,6 +549,6 @@ let mod = {
     FILL_NUKER: true,
     AUTO_POWER_MINING: true, //set to false to disable power mining (recomended until 1-2 RCL8+ rooms)
     MAX_AUTO_POWER_MINING_FLAGS: 2,
-    POWER_MINE_LOG: true, //displays power mining info in console,
+    POWER_MINE_LOG: true //displays power mining info in console,
 };
 module.exports = mod;
