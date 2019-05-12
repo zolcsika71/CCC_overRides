@@ -510,6 +510,8 @@ mod.extend = function () {
         let terminalFull = (this.terminal.sum / this.terminal.storeCapacity) > 0.9;
         let storageFull = (this.storage.sum / this.storage.storeCapacity) > 0.9;
 
+        global.logSystem(this.name, `${Util.chargeScale(this.storage.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT, MIN_STORAGE_ENERGY[this.controller.level], MAX_STORAGE_ENERGY[this.controller.level])}`);
+
         if (this.controller.level === 8 && Util.chargeScale(this.storage.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT, MIN_STORAGE_ENERGY[this.controller.level], MAX_STORAGE_ENERGY[this.controller.level]) > 1
             && (this.terminal.store[this.mineralType] || 0) < 150000
             && this.terminal.store.energy > (ENERGY_BALANCE_TRANSFER_AMOUNT * 1.1)) {
@@ -520,6 +522,7 @@ mod.extend = function () {
                 !room._isReceivingEnergy &&
                 room.storage.store[RESOURCE_ENERGY] < MAX_STORAGE_ENERGY[room.controller.level]
             );
+
             let targetRoom = _.min(_.filter(Game.rooms, requiresEnergy), 'storage.store.energy');
             if (targetRoom instanceof Room && Game.market.calcTransactionCost(ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name) < (this.terminal.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT)) {
                 targetRoom._isReceivingEnergy = true;
@@ -623,8 +626,11 @@ mod.extend = function () {
                                 else
                                     global.logSystem(that.name, `sell order FAILED for => resourceType: ${mineral} price: ${averagePrice} totalAmount: ${sellAmount} errorCode: ${returnValue}`);
 
+                                return returnValue;
+
                             }
-                        }
+                        } else
+                            return false;
                     };
 
                 for (const mineral in this.terminal.store) {
@@ -635,8 +641,9 @@ mod.extend = function () {
                     if (mineral.length > 1 && global.SELL_COMPOUND[mineral]) {
 
                         if (global.SELL_COMPOUND[mineral].sell) {
-                            global.logSystem(that.name, `making sell order for ${that.terminal.store[mineral]} ${mineral}`)
-                            makeSellOrder(mineral);
+                            let returnValue = makeSellOrder(mineral);
+                            if (returnValue === OK)
+                                global.logSystem(that.name, `making sell order for ${that.terminal.store[mineral]} ${mineral}`);
                             // global.sumCompoundType(data.terminal[0].orders, 'orderRemaining')[mineral] === 0 => terminal order completed
 
                         } else if (that.nuked) {
