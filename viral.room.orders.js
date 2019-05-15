@@ -571,13 +571,14 @@ mod.extend = function () {
                     },
                     makeSellOrder = function (mineral) {
                         let mineralSellOrders = global._sellOrders(mineral),
-                            currentOrder = _.filter(mineralSellOrders, order => {
+                            mineralBuyOrders = global._buyOrders(mineral),
+                            sellOrder = _.filter(mineralSellOrders, order => {
                                 return order.roomName === that.name;
                             }),
                             otherOrders = _.filter(mineralSellOrders, order => {
                                     return order.roomName !== that.name;
                                 }),
-                            sellOrderExists = currentOrder.length > 0,
+                            sellOrderExists = sellOrder.length > 0,
                             amount = function (mineral) {
                                 if (that.terminal.store[mineral] > global.COMPOUND_SELL_AMOUNT)
                                     return global.COMPOUND_SELL_AMOUNT;
@@ -593,6 +594,8 @@ mod.extend = function () {
                             let minPrice,
                                 averagePrice,
                                 sellAmount = amount(mineral),
+                                buyOrders,
+                                buyOrder,
                                 returnValue;
 
                             if (global.SELL_COMPOUND[mineral].urgent) {
@@ -602,12 +605,24 @@ mod.extend = function () {
                                 else
                                     minPrice = global.SELL_COMPOUND[mineral].defaultPrice;
 
-                                if (minPrice < 0)
+                                if (minPrice <= 0)
                                     minPrice = 0.001;
 
-                                if (sellOrderExists && currentOrder[0].price !== minPrice) {
-                                    global.logSystem(that.name, `new urgent sell order needed for resourceType: ${mineral} currentPrice: ${currentOrder[0].price} newPrice: ${minPrice}`);
-                                    returnValue = Game.market.changeOrderPrice(currentOrder[0].id, minPrice);
+                                // check if there is a buyOrder for this price
+                                buyOrders = _.filter(mineralBuyOrders, order => {
+                                   return order.price >= minPrice;
+                                });
+
+                                if (buyOrders.length > 0) {
+                                    buyOrder = _.max(buyOrders, 'price');
+                                    global.logSystem(that.name, `buyOrder found at ${buyOrder.price} for ${mineral} currentSellPrice: ${sellOrder[0].price} minPrice: ${minPrice}`);
+                                    global.logSystem(that.name, `deal: ${Game.market.deal(buyOrder.id, Math.min(sellAmount, buyOrder.amount), that.name)}`);
+                                }
+
+
+                                if (sellOrderExists && sellOrder[0].price !== minPrice) {
+                                    global.logSystem(that.name, `new urgent sell order needed for resourceType: ${mineral} currentPrice: ${sellOrder[0].price} newPrice: ${minPrice}`);
+                                    returnValue = Game.market.changeOrderPrice(sellOrder[0].id, minPrice);
                                     if (returnValue === OK)
                                         global.logSystem(that.name, `sell order price changes success`);
                                     else if (!_.isUndefined(returnValue))
@@ -630,9 +645,9 @@ mod.extend = function () {
                                 else
                                     averagePrice = global.SELL_COMPOUND[mineral].defaultPrice;
 
-                                if (sellOrderExists && currentOrder[0].price !== averagePrice) {
-                                    global.logSystem(that.name, `new urgent sell order needed for resourceType: ${mineral} currentPrice: ${currentOrder[0].price} newPrice: ${averagePrice}`);
-                                    returnValue = Game.market.changeOrderPrice(currentOrder[0].id, averagePrice);
+                                if (sellOrderExists && sellOrder[0].price !== averagePrice) {
+                                    global.logSystem(that.name, `new urgent sell order needed for resourceType: ${mineral} currentPrice: ${sellOrder[0].price} newPrice: ${averagePrice}`);
+                                    returnValue = Game.market.changeOrderPrice(sellOrder[0].id, averagePrice);
                                     if (returnValue === OK)
                                         global.logSystem(that.name, `sell order price changes success`);
                                     else if (!_.isUndefined(returnValue))
