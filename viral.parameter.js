@@ -116,10 +116,10 @@ let mod = {
             maxStorage: 20000
         },
         XLHO2: {    // +300% heal and rangedHeal effectiveness
-            sell: true,
-            urgent: true,
+            sell: false,
+            urgent: false,
             defaultPrice: 1,
-            rooms: ['E15S3'],
+            rooms: [],
             maxStorage: 20000
         },
         XGHO2: {    // -70% damage taken
@@ -130,10 +130,10 @@ let mod = {
             maxStorage: 20000
         },
         XZH2O: {    // +300% dismantle effectiveness
-            sell: false,
-            urgent: false,
+            sell: true,
+            urgent: true,
             defaultPrice: 1,
-            rooms: [],
+            rooms: ['E15S3'],
             maxStorage: 20000
         },
         XKH2O: {    // +150 capacity

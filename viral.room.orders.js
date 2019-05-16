@@ -615,7 +615,7 @@ mod.extend = function () {
 
                                 if (buyOrders.length > 0) {
                                     buyOrder = _.max(buyOrders, 'price');
-                                    global.logSystem(that.name, `buyOrder found at ${buyOrder.price} for ${mineral} currentSellPrice: ${sellOrder[0].price} minPrice: ${minPrice}`);
+                                    global.logSystem(that.name, `buyOrder found at ${buyOrder.price} for ${mineral} minPrice: ${minPrice}`);
                                     global.logSystem(that.name, `deal: ${Game.market.deal(buyOrder.id, Math.min(sellAmount, buyOrder.amount), that.name)}`);
                                 }
 
@@ -661,13 +661,8 @@ mod.extend = function () {
                                         global.logSystem(that.name, `sell order FAILED for => resourceType: ${mineral} price: ${averagePrice} totalAmount: ${sellAmount} errorCode: ${returnValue}`);
 
                                 }
-
-
-
                                 //global.logSystem(that.name, `returnValue: ${returnValue}`);
-
                                 return returnValue;
-
                             }
                         } else
                             return false;
