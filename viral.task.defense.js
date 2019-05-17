@@ -258,7 +258,7 @@ mod.orderDefenses = function (invaderCreep, GUID) {
                 if (Object.keys(compounds).length > 0) {
                     global.logSystem(creepSetup.queueRoom, `ALLOCATING to: ${creepSetup.queueRoom}`);
                     //global.BB(invadersRoom);
-                    Game.rooms[creepSetup.queueRoom].allocateCompound(invadersRoom, compounds, GUID, 'defense');
+                    Game.rooms[creepSetup.queueRoom].allocateCompound(compounds, GUID, 'defense', invadersRoom);
                 }
             }
         );

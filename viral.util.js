@@ -347,18 +347,20 @@ viralUtil.terminalOrderToSell = function (roomName) {
         Game.rooms[roomName].terminalOrderToSell();
 };
 
-viralUtil.terminalDelete = function () {
+viralUtil.cancelMarket = function () {
 
-    let myRooms = _.filter(Game.rooms, room => {
-        return room.my && room.storage && room.terminal && room.terminal.store['XUH2O'] && room.terminal.store['XUH2O'] > 0;
+    Object.keys(Game.market.orders).forEach(order => {
+
+        let orderObject = Game.market.orders[order];
+
+        if (!orderObject.active) {
+            global.logSystem(orderObject.roomName, `Inactive market order found in ${orderObject.roomName} for ${orderObject.resourceType}`);
+            global.logSystem(orderObject.roomName, `Order cancelled in ${orderObject.roomName} for ${orderObject.resourceType}`);
+            Game.market.cancelOrder(orderObject.id);
+        }
     });
 
-    //let rooms = ['E13S5', 'E19S21', 'E22S22', 'E23S24', 'E25S11', 'E26S13', 'E27S15', 'E27S16', 'E29S17'];
 
-    for (let room of myRooms) {
-        console.log(room.name);
-        room.memory.resources.terminal[0].orders = [];
-    }
 
 };
 

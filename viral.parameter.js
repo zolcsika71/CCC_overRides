@@ -130,10 +130,10 @@ let mod = {
             maxStorage: 20000
         },
         XZH2O: {    // +300% dismantle effectiveness
-            sell: true,
-            urgent: true,
+            sell: false,
+            urgent: false,
             defaultPrice: 1,
-            rooms: ['E15S3'],
+            rooms: [],
             maxStorage: 20000
         },
         XKH2O: {    // +150 capacity
@@ -144,10 +144,10 @@ let mod = {
             maxStorage: 15000
         },
         XZHO2: {    // +300% fatigue decrease speed
-            sell: false,
-            urgent: false,
+            sell: true,
+            urgent: true,
             defaultPrice: 1,
-            rooms: [],
+            rooms: ['E15S3'],
             maxStorage: 20000
         },
         XUHO2: {    // +600% harvest effectiveness
@@ -287,7 +287,7 @@ let mod = {
         'OverlordQ','Nibinhilion','Crowsbane','Yew','BogdanBiv','s1akr','Pandabear41','Logmadr','Patrik','novice','Conquest','ofirl','GeorgeBerkeley','TTR','tynstar','K-C','Hoekynl','Sunri5e',
         'AgOrange','distantcam','Lisp','bbdMinimbl','Twill','Logxen','miR','Spedwards','Krazyfuq','Icesory','chobobobo','deft-code','mmmd','DKPlugins','pavelnieks','buckley310','almaravarion',
         'SSH','Perrytheplatypus','Jnesselr','ryagas','xXtheguy52Xx','SEATURTLEKING','DasBrain','C00k1e_93','Currency','Vykook','shedletsky','Aranatha','Montblanc','emb3r','Mudla','Vladthepaler',
-        'kikooo','CanisMinor','NekoSama','Dravo','zolcsika','Saint','Komir', 'DoctorPC', 'omnomwombat', 'Geir1983'],
+        'kikooo','CanisMinor','NekoSama','Dravo','zolcsika','Saint','Komir', 'DoctorPC', 'omnomwombat', 'Geir1983', 'likeafox'],
     // Don't attack. Must be a member of CCC for permanent whitelisting in git repository. But you can change your own copy... Please ask if you are interested in joining CCC :)
     DEFENSE_BLACKLIST: [], // Don't defend those rooms (add room names). Blocks spawning via defense task (will not prevent offensive actions at all)
     CRITICAL_BUCKET_LEVEL: 1000, // take action when the bucket drops below this value to prevent the bucket from actually running out
