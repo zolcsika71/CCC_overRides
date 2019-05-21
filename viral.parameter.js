@@ -95,73 +95,73 @@ let mod = {
     MAX_STORAGE_TERMINAL: 230000, // maximum amount of all minerals in terminal
     SELL_COMPOUND: {
         XGH2O: {    // +100% upgradeController effectiveness without increasing the energy cost
-            sell: false, // sell or not
-            urgent: false, // false => sell price is the average price of the existing offers, true => sell price is lower then the lowest price
+            sell: true, // sell or not
+            urgent: true, // false => sell price is the average price of the existing offers, true => sell price is lower then the lowest price
             defaultPrice: 1, // sell price if there is no existing offers, and there is no order above it.
-            rooms: [], // affected rooms, empty array means all rooms
+            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'], // affected rooms, empty array means all rooms
             maxStorage: 50000 // selling starts above this amount
         },
         XUH2O: {    // +300% attack effectiveness
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E15S3'],
-            maxStorage: 20000
+            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
+            maxStorage: 15000
         },
         XKHO2: {    // +300% rangedAttack and rangedMassAttack effectiveness
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E15S3'],
-            maxStorage: 20000
+            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
+            maxStorage: 15000
         },
         XLHO2: {    // +300% heal and rangedHeal effectiveness
-            sell: false,
-            urgent: false,
+            sell: true,
+            urgent: true,
             defaultPrice: 1,
-            rooms: [],
-            maxStorage: 20000
+            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
+            maxStorage: 15000
         },
         XGHO2: {    // -70% damage taken
-            sell: false,
-            urgent: false,
+            sell: true,
+            urgent: true,
             defaultPrice: 1,
-            rooms: [],
-            maxStorage: 20000
+            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
+            maxStorage: 15000
         },
         XZH2O: {    // +300% dismantle effectiveness
-            sell: false,
-            urgent: false,
+            sell: true,
+            urgent: true,
             defaultPrice: 1,
-            rooms: [],
-            maxStorage: 20000
+            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
+            maxStorage: 15000
         },
         XKH2O: {    // +150 capacity
-            sell: false,
-            urgent: false,
+            sell: true,
+            urgent: true,
             defaultPrice: 1,
-            rooms: [],
+            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
             maxStorage: 15000
         },
         XZHO2: {    // +300% fatigue decrease speed
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E15S3'],
-            maxStorage: 20000
+            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
+            maxStorage: 15000
         },
         XUHO2: {    // +600% harvest effectiveness
-            sell: false,
-            urgent: false,
+            sell: true,
+            urgent: true,
             defaultPrice: 1,
-            rooms: [],
+            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
             maxStorage: 9000
         },
         XLH2O: {    // +100% repair and build effectiveness without increasing the energy cost
-            sell: false,
-            urgent: false,
+            sell: true,
+            urgent: true,
             defaultPrice: 1,
-            rooms: [],
+            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
             maxStorage: 9000
         }
     },
@@ -169,6 +169,7 @@ let mod = {
     FILL_POWERSPAWN: true,
     MIN_MINERAL_SELL_AMOUNT: 5000,
     MIN_ENERGY_SELL_AMOUNT: 3000,
+    MIN_COMPOUND_SELL_AMOUNT: 1000,
     COMPOUND_SELL_AMOUNT: 10000,
     ENERGY_VALUE_CREDITS: 0.05, // assumed energy exchange rate (in credits) to determine best mineral sell offer
     //MAX_SELL_RANGE: 60,

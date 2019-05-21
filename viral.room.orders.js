@@ -8,6 +8,7 @@ mod.analyzeRoom = function (room, needMemoryResync) {
             //room.garbageCollectStorageOrders();
             //room.garbageCollectTerminalOrders();
             room.updateRoomOrders();
+            room.cancelTerminalOrderToSell();
             room.terminalOrderToSell();
             room.terminalBroker();
         }
@@ -572,103 +573,132 @@ mod.extend = function () {
                     makeSellOrder = function (mineral) {
                         let mineralSellOrders = global._sellOrders(mineral),
                             mineralBuyOrders = global._buyOrders(mineral),
-                            sellOrder = _.filter(mineralSellOrders, order => {
-                                return order.roomName === that.name;
-                            }),
-                            otherOrders = _.filter(mineralSellOrders, order => {
-                                    return order.roomName !== that.name;
+                            numberOfOrders = Object.keys(Game.market.orders).length,
+                            mySellOrders = _.filter(mineralSellOrders, order => {
+                                return Game.rooms[order.roomName] ? Game.rooms[order.roomName].my : false;
                                 }),
-                            sellOrderExists = sellOrder.length > 0,
+                            otherOrders = _.filter(mineralSellOrders, order => {
+                                return Game.rooms[order.roomName] ? Game.rooms[order.roomName].my === false : true;
+                                }),
+                            sellOrderExists = mySellOrders.length > 0 && _.some(mySellOrders, {roomName: that.name}),
                             amount = function (mineral) {
                                 if (that.terminal.store[mineral] > global.COMPOUND_SELL_AMOUNT)
                                     return global.COMPOUND_SELL_AMOUNT;
                                 else
-                                    return that.terminal.store[mineral];
+                                    return that.terminal.store[mineral] >= global.MIN_COMPOUND_SELL_AMOUNT ? that.terminal.store[mineral] : 0;
                             },
+                            changePrice = function (price) {
+
+                                let wrongSellOrders = _.filter(mySellOrders, order => {
+                                    return order.price !== price && order.roomName === that.name;
+                                });
+
+                                if (wrongSellOrders.length > 0) {
+                                    for (let order of wrongSellOrders) {
+                                        global.logSystem(that.name, `new urgent sell order needed for resourceType: ${order.resourceType} currentPrice: ${order.price} newPrice: ${price}`);
+                                        returnValue = Game.market.changeOrderPrice(order.id, price);
+                                    }
+                                }
+
+                                if (returnValue === OK)
+                                    global.logSystem(that.name, `sell order price changes success`);
+                                else if (!_.isUndefined(returnValue))
+                                    global.logSystem(that.name, `sell order price changes fail => errorCode: ${returnValue}`);
+
+                            },
+                            makeOrder = function (mineral, price, sellAmount) {
+
+                                returnValue = Game.market.createOrder(ORDER_SELL, mineral, price, sellAmount, that.name);
+                                if (returnValue === OK) {
+                                    global.logSystem(that.name, `sell order created for => resourceType: ${mineral} price: ${price} totalAmount: ${sellAmount}`);
+                                    numberOfOrders++
+                                }
+                                else if (!_.isUndefined(returnValue))
+                                    global.logSystem(that.name, `sell order FAILED for => resourceType: ${mineral} price: ${price} totalAmount: ${sellAmount} errorCode: ${returnValue}`);
+
+                                return returnValue;
+
+                            },
+                            cancelOrder = function () {
+
+                                Object.keys(Game.market.orders).forEach(order => {
+
+                                    let orderObject = Game.market.orders[order];
+
+                                    if (!orderObject.active) {
+                                        global.logSystem(orderObject.roomName, `Inactive market order found in ${orderObject.roomName} for ${orderObject.resourceType}`);
+                                        global.logSystem(orderObject.roomName, `Order cancelled in ${orderObject.roomName} for ${orderObject.resourceType}`);
+                                        Game.market.cancelOrder(orderObject.id);
+                                        numberOfOrders--
+                                    }
+                                });
+
+                            },
+                            setOrders = function (price, sellAmount) {
+
+                                if (sellOrderExists) {
+                                    changePrice(price);
+                                } else if (numberOfOrders >= 50) {
+                                    // garbage collecting Game.market.orders
+                                    cancelOrder();
+                                } else
+                                    returnValue = makeOrder(mineral, price, sellAmount);
+
+                                return returnValue;
+                            },
+                            sellAmount = amount(mineral),
                             terminalOrderCompleted = sumCompoundType(data.terminal[0].orders, 'orderRemaining')[mineral] === 0;
 
-                        // garbage collecting Game.market.orders
-
-                        if (terminalOrderCompleted) {
+                        if (terminalOrderCompleted && sellAmount > 0) {
 
                             let minPrice,
                                 averagePrice,
-                                sellAmount = amount(mineral),
                                 buyOrders,
                                 buyOrder,
                                 returnValue;
 
                             if (global.SELL_COMPOUND[mineral].urgent) {
 
-                                if (mineralSellOrders)
-                                    minPrice = global.roundUp(_.min(otherOrders, 'price').price - 0.001, 4);
+                                if (otherOrders.length > 0)
+                                    minPrice = _.round(_.min(otherOrders, 'price').price - 0.001, 3);
                                 else
                                     minPrice = global.SELL_COMPOUND[mineral].defaultPrice;
 
-                                if (minPrice <= 0)
-                                    minPrice = 0.001;
+                                minPrice = minPrice <= 0 ? 0.001 : minPrice;
 
                                 // check if there is a buyOrder for this price
                                 buyOrders = _.filter(mineralBuyOrders, order => {
-                                   return order.price >= minPrice;
+                                    return order.price >= minPrice;
                                 });
 
-                                if (buyOrders.length > 0) {
+                                if (buyOrders.length > 0 && numberOfOrders < 50) {
                                     buyOrder = _.max(buyOrders, 'price');
                                     global.logSystem(that.name, `buyOrder found at ${buyOrder.price} for ${mineral} minPrice: ${minPrice}`);
-                                    global.logSystem(that.name, `deal: ${Game.market.deal(buyOrder.id, Math.min(sellAmount, buyOrder.amount), that.name)}`);
+                                    returnValue = Game.market.deal(buyOrder.id, Math.min(sellAmount, buyOrder.amount), that.name);
+                                    global.logSystem(that.name, `deal: ${global.translateErrorCode(returnValue)}`);
+
+                                    if (returnValue === OK)
+                                        sellAmount = amount(mineral);
+                                    if (sellAmount > 0)
+                                        returnValue = setOrders(minPrice, sellAmount);
                                 }
 
-
-                                if (sellOrderExists && sellOrder[0].price !== minPrice) {
-                                    global.logSystem(that.name, `new urgent sell order needed for resourceType: ${mineral} currentPrice: ${sellOrder[0].price} newPrice: ${minPrice}`);
-                                    returnValue = Game.market.changeOrderPrice(sellOrder[0].id, minPrice);
-                                    if (returnValue === OK)
-                                        global.logSystem(that.name, `sell order price changes success`);
-                                    else if (!_.isUndefined(returnValue))
-                                        global.logSystem(that.name, `sell order price changes fail => errorCode: ${returnValue}`);
-
-                                } else if (!sellOrderExists) {
-                                    returnValue = Game.market.createOrder(ORDER_SELL, mineral, minPrice, sellAmount, that.name);
-                                    if (returnValue === OK)
-                                        global.logSystem(that.name, `sell order created for => resourceType: ${mineral} price: ${minPrice} totalAmount: ${sellAmount}`);
-                                    else if (!_.isUndefined(returnValue))
-                                        global.logSystem(that.name, `sell order FAILED for => resourceType: ${mineral} price: ${minPrice} totalAmount: ${sellAmount} errorCode: ${returnValue}`);
-                                }
-
-                                return returnValue;
+                                returnValue = setOrders(minPrice, sellAmount);
 
                             } else {
 
-                                if (mineralSellOrders)
-                                    averagePrice = global.roundUp(_.sum(otherOrders, 'price') / mineralSellOrders.length, 4);
+                                if (otherOrders)
+                                    averagePrice = _.round(_.sum(otherOrders, 'price') / otherOrders.length, 3);
                                 else
                                     averagePrice = global.SELL_COMPOUND[mineral].defaultPrice;
 
-                                if (sellOrderExists && sellOrder[0].price !== averagePrice) {
-                                    global.logSystem(that.name, `new urgent sell order needed for resourceType: ${mineral} currentPrice: ${sellOrder[0].price} newPrice: ${averagePrice}`);
-                                    returnValue = Game.market.changeOrderPrice(sellOrder[0].id, averagePrice);
-                                    if (returnValue === OK)
-                                        global.logSystem(that.name, `sell order price changes success`);
-                                    else if (!_.isUndefined(returnValue))
-                                        global.logSystem(that.name, `sell order price changes fail => errorCode: ${returnValue}`);
+                                returnValue = setOrders(averagePrice, sellAmount);
 
-                                } else if (!sellOrderExists) {
-                                    returnValue = Game.market.createOrder(ORDER_SELL, mineral, averagePrice, sellAmount, that.name);
-                                    if (returnValue === OK)
-                                        global.logSystem(that.name, `sell order created for => resourceType: ${mineral} price: ${averagePrice} totalAmount: ${sellAmount}`);
-                                    else if (!_.isUndefined(returnValue))
-                                        global.logSystem(that.name, `sell order FAILED for => resourceType: ${mineral} price: ${averagePrice} totalAmount: ${sellAmount} errorCode: ${returnValue}`);
-
-                                }
-                                //global.logSystem(that.name, `returnValue: ${returnValue}`);
                                 return returnValue;
                             }
                         } else
                             return false;
-
-
-                    };
+                };
 
                 for (const mineral in this.terminal.store) {
 
@@ -824,31 +854,58 @@ mod.extend = function () {
                         else
                             return 0;
                     },
-                    // TODO terminalOrder needed?
-                    terminalOrder = resources.terminal[0].orders.length > 0 ? global.sumCompoundType(resources.terminal[0].orders, 'orderRemaining')[mineral] || 0 : 0,
+                    terminalOrderRemaining = resources.terminal[0].orders.length > 0 ? global.sumCompoundType(resources.terminal[0].orders, 'orderRemaining')[mineral] || 0 : 0,
                     transferAmount = validRoomMineral + validNotRoomMineral + validCompound();
 
 
                 //if (that.name === 'E15S3')
                 //    global.logSystem(that.name, `${mineral}: ${amount} validRoomMineral: ${validRoomMineral} validNotRoomMineral: ${validNotRoomMineral} validCompound: ${validCompound()} terminalOrder: ${terminalOrder}`);
 
-                if (transferAmount >= global.MIN_OFFER_AMOUNT) {
+                if (terminalOrderRemaining === 0) {
+                    if (transferAmount >= global.MIN_OFFER_AMOUNT) {
 
-                    //console.log(`${that.name} freeTerminalSpace: ${freeSpace} mineral: ${mineral} transferAmount: ${transferAmount}`);
+                        //console.log(`${that.name} freeTerminalSpace: ${freeSpace} mineral: ${mineral} transferAmount: ${transferAmount}`);
 
-                    if (freeSpace >= transferAmount) {
-                        that.placeOrder(that.terminal.id, mineral, transferAmount);
-                        global.logSystem(that.name, `terminal order placed for sell ${transferAmount} ${mineral} `);
+                        if (freeSpace >= transferAmount) {
+                            that.placeOrder(that.terminal.id, mineral, transferAmount);
+                            global.logSystem(that.name, `terminal order placed for sell ${transferAmount} ${mineral} `);
 
-                    } else if (freeSpace >= global.MIN_MINERAL_SELL_AMOUNT) {
-                        // try max amount
-                        that.placeOrder(that.terminal.id, mineral, freeSpace);
-                        global.logSystem(that.name, `terminal order placed for sell ${freeSpace} ${mineral} - terminalFull, transferAmount would be: ${transferAmount}`);
+                        } else if (freeSpace >= global.MIN_MINERAL_SELL_AMOUNT) {
+                            // try max amount
+                            that.placeOrder(that.terminal.id, mineral, freeSpace);
+                            global.logSystem(that.name, `terminal order placed for sell ${freeSpace} ${mineral} - terminalFull, transferAmount would be: ${transferAmount}`);
+                        }
                     }
                 }
             }
         });
 
+    };
+
+    Room.prototype.cancelTerminalOrderToSell = function () {
+
+        if (!this.my || !this.terminal || !this.storage)
+            return;
+
+        let that = this;
+
+
+        // _.forEach(object, function (value, key)
+        for (let mineral in this.terminal.store) {
+
+            if (mineral.length !== 5)
+                continue;
+
+            if (!(global.SELL_COMPOUND[mineral] && global.SELL_COMPOUND[mineral].sell
+                && (_.some(global.SELL_COMPOUND[mineral].rooms, room => {
+                    return room === that.name;
+                }) || global.SELL_COMPOUND[mineral].rooms.length === 0)
+            )) {
+                global.logSystem(this.name, `order cancelled for ${mineral}`);
+                this.cancelOrder(this.terminal.id, mineral);
+            }
+
+        }
     };
 
     Room.prototype.garbageCollectStorageOrders = function () {

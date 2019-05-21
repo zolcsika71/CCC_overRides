@@ -104,18 +104,6 @@ viralUtil.cleanTrace = function () {
         delete room.memory.roadConstructionTrace;
 
 };
-
-viralUtil.terminalBroker = function (roomName = undefined) {
-
-
-    if (_.isUndefined(roomName)) {
-        let myRooms = _.filter(Game.rooms, {'my': true});
-        for (let room of myRooms)
-            room.terminalBroker();
-    } else
-        Game.rooms[roomName].terminalBroker();
-};
-
 viralUtil.roomStored = function (mineral) {
 
     let myRooms =  _.filter(Game.rooms, room => {
@@ -269,74 +257,6 @@ viralUtil.allocatedRooms = function () {
     }
 };
 
-viralUtil.unAllocateCompound = function (type) {
-
-    let typeExist = function () {
-
-            let returnArray = [];
-
-            //global.BB(Memory.allocateProperties.lastAllocated);
-
-            Object.keys(Memory.allocateProperties.lastAllocated).forEach(guid => {
-
-                let guidObject = Memory.allocateProperties.lastAllocated[guid];
-
-                if (guidObject.type === type)
-                    returnArray.push(guid);
-            });
-            return returnArray;
-        },
-        unAllocate = function (guid) {
-
-            let unAllocateObject = Memory.allocateProperties.lastAllocated[guid];
-
-            for (let compound of unAllocateObject.compounds) {
-                let allocateRooms = Memory.compoundsToAllocate[compound].allocateRooms;
-                for (let room of allocateRooms)
-                    allocateRooms.splice(allocateRooms.indexOf(room), 1);
-
-                if (allocateRooms.length === 0)
-                    Memory.compoundsToAllocate[compound].allocate = false;
-
-                Memory.compoundsToAllocate[compound].allocateRooms = allocateRooms;
-                delete Memory.allocateProperties.lastAllocated[guid];
-            }
-        },
-        guidArray = typeExist();
-
-    if (guidArray.length === 0) {
-        console.log(`no GUID for: ${type}`);
-        return;
-    }
-
-
-    console.log(`unallocate: ${type}`);
-
-    switch (type) {
-        case 'defense':
-
-            for (let guid of guidArray) {
-
-                let invadedRooms = _.filter(guid.allocateRooms, room => {
-                    return Game.rooms[room].hostiles.length > 0;
-                });
-
-                if (invadedRooms.length === 0)
-                    unAllocate(guid);
-
-            }
-
-
-
-            // stuff
-            break;
-        case 'miner':
-            // stuff
-            break;
-    }
-
-};
-
 viralUtil.terminalOrderToSell = function (roomName) {
 
     if (_.isUndefined(roomName)) {
@@ -359,11 +279,135 @@ viralUtil.cancelMarket = function () {
             Game.market.cancelOrder(orderObject.id);
         }
     });
+};
+
+viralUtil.terminalBroker = function (roomName = undefined) {
+
+
+    if (_.isUndefined(roomName)) {
+        let myRooms = _.filter(Game.rooms, {'my': true});
+        for (let room of myRooms)
+            room.terminalBroker();
+    } else
+        Game.rooms[roomName].terminalBroker();
+};
+
+viralUtil.fixTerminal = function(roomName) {
+
+    let room = Game.rooms[roomName],
+        data = room.memory.resources,
+        terminalMemory = room.memory.resources.terminal[0],
+        tOrders,
+        terminal = room.terminal;
+
+    console.log(`BEFORE: ${terminalMemory.orders.length}`);
+
+    //global.BB(terminalMemory.orders);
+
+    // TODO is it necessary?
+    // garbage collecting offerRoom terminal orders
+    if (terminalMemory.orders.length > 0) {
+        tOrders = _.filter(terminalMemory.orders, order => {
+
+            console.log(`1., ${order.type} ${_.some(data.offers, offer => {
+                return (offer.type === order.type && offer.amount === order.orderRemaining + (terminal.store[offer.type] || 0));
+            })}`);
+
+            console.log(`2., ${order.type} ${order.type === room.mineralType && room.storage.store[order.type] >= global.MAX_STORAGE_MINERAL}`);
+
+            console.log(`3., ${order.type} ${order.type.length === 1 && order.type !== room.mineralType && order.type !== RESOURCE_ENERGY && room.storage.store[order.type] >= global.MAX_STORAGE_NOT_ROOM_MINERAL}`);
+
+            console.log(`4., ${order.type} ${global.SELL_COMPOUND[order.type] && global.SELL_COMPOUND[order.type].sell
+            && (global.SELL_COMPOUND[order.type].rooms.length === 0 || _.some(global.SELL_COMPOUND[mineral], {'rooms': room.name}))}`);
+
+
+            return (order.orderRemaining > 0 || order.storeAmount > 0)
+                && (_.some(data.offers, offer => {
+                        return (offer.type === order.type && offer.amount === order.orderRemaining + (terminal.store[offer.type] || 0));
+                    })
+                    || (order.type === room.mineralType && room.storage.store[order.type] >= global.MAX_STORAGE_MINERAL)
+                    || (order.type.length === 1 && order.type !== room.mineralType && order.type !== RESOURCE_ENERGY && room.storage.store[order.type] >= global.MAX_STORAGE_NOT_ROOM_MINERAL)
+                    || (global.SELL_COMPOUND[order.type] && global.SELL_COMPOUND[order.type].sell
+                        && (global.SELL_COMPOUND[order.type].rooms.length === 0 || _.some(global.SELL_COMPOUND[mineral], {'rooms': room.name})))
+                );
+        });
+    }
+
+
+
+    console.log(`AFTER: ${tOrders.length}`);
+
+    //global.BB(terminalMemory.orders);
 
 
 
 };
 
 
+viralUtil.findOrders = function (roomName) {
+
+    let myRooms = _.filter(Game.rooms, {'my': true}),
+        counter = 0;
+
+    for (let room of myRooms) {
+
+        if (roomName !== undefined && room.name !== roomName)
+            continue;
+
+        let data = room.memory.resources,
+            terminalOrder = data.terminal[0].orders;
+
+        if (terminalOrder.length > 0) {
+            console.log(`${room.name} ${terminalOrder.length}`);
+            //global.BB(terminalOrder.slice());
+            counter++
+        }
+    }
+
+    console.log(counter);
+};
+
+viralUtil.compoundMaking = function () {
+
+    let myRooms = _.filter(Game.rooms, {'my': true}),
+        counter = 0;
+
+    for (let room of myRooms) {
+
+        let data = room.memory.resources,
+            reactions = data.reactions;
+
+        if (reactions.orders.length > 0) {
+            console.log(`${room.name} ${reactions.orders[0].type} ${reactions.orders[0].amount}`);
+            //global.BB(terminalOrder.slice());
+            counter++
+        }
+    }
+    console.log(counter);
+};
+
+viralUtil.cancelTerminalOrder = function (roomName) {
+
+    if (roomName === undefined) {
+        let myRooms = _.filter(Game.rooms, {'my': true});
+
+        for (let room of myRooms)
+            room.cancelTerminalOrderToSell();
+    } else
+        Game.rooms[roomName].cancelTerminalOrderToSell();
+
+};
+
+viralUtil.deleteTerminalOrder = function (roomName) {
+
+    if (roomName === undefined) {
+        let myRooms = _.filter(Game.rooms, {'my': true});
+
+        for (let room of myRooms)
+            room.memory.resources.terminal[0].orders = [];
+    } else
+        Game.rooms[roomName].memory.resources.terminal[0].orders = [];
+
+};
 
 module.exports = viralUtil;
