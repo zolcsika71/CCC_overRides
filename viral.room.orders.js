@@ -647,7 +647,7 @@ mod.extend = function () {
                                 return returnValue;
                             },
                             sellAmount = amount(mineral),
-                            terminalOrderCompleted = sumCompoundType(data.terminal[0].orders, 'orderRemaining')[mineral] === 0;
+                            terminalOrderCompleted = sumCompoundType(data.terminal[0].orders, 'orderRemaining')[mineral] <= 0;
 
                         if (terminalOrderCompleted && sellAmount > 0) {
 

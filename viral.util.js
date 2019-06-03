@@ -410,4 +410,30 @@ viralUtil.deleteTerminalOrder = function (roomName) {
 
 };
 
+viralUtil.lastSales = function () {
+
+    let outgoingTransactions = _.filter(Game.market.outgoingTransactions, transaction => {
+       return transaction.resourceType.length === 5;
+    });
+
+    for (let transaction of outgoingTransactions) {
+        //let transactionObject = outgoingTransactions[transaction];
+        console.log(`room: ${transaction.from} resourceType: ${transaction.resourceType} amount: ${transaction.amount} price: ${transaction.order.price}`);
+    }
+
+};
+
+viralUtil.testOrders = function (roomName, mineral) {
+
+    let mineralSellOrders = global._sellOrders(mineral),
+        mySellOrders = _.filter(mineralSellOrders, order => {
+            return Game.rooms[order.roomName] ? Game.rooms[order.roomName].my : false;
+    }),
+        sellOrderExists = mySellOrders.length > 0 && _.some(mySellOrders, {roomName: roomName});
+
+    console.log(sellOrderExists);
+
+
+};
+
 module.exports = viralUtil;

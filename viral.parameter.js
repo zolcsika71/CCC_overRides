@@ -105,63 +105,63 @@ let mod = {
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27'],
             maxStorage: 15000
         },
         XKHO2: {    // +300% rangedAttack and rangedMassAttack effectiveness
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27'],
             maxStorage: 15000
         },
         XLHO2: {    // +300% heal and rangedHeal effectiveness
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27'],
             maxStorage: 15000
         },
         XGHO2: {    // -70% damage taken
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27'],
             maxStorage: 15000
         },
         XZH2O: {    // +300% dismantle effectiveness
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27'],
             maxStorage: 15000
         },
         XKH2O: {    // +150 capacity
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27'],
             maxStorage: 15000
         },
         XZHO2: {    // +300% fatigue decrease speed
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27'],
             maxStorage: 15000
         },
         XUHO2: {    // +600% harvest effectiveness
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27'],
             maxStorage: 9000
         },
         XLH2O: {    // +100% repair and build effectiveness without increasing the energy cost
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27'],
             maxStorage: 9000
         }
     },
