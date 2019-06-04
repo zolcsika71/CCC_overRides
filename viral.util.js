@@ -267,19 +267,6 @@ viralUtil.terminalOrderToSell = function (roomName) {
         Game.rooms[roomName].terminalOrderToSell();
 };
 
-viralUtil.cancelMarket = function () {
-
-    Object.keys(Game.market.orders).forEach(order => {
-
-        let orderObject = Game.market.orders[order];
-
-        if (!orderObject.active) {
-            global.logSystem(orderObject.roomName, `Inactive market order found in ${orderObject.roomName} for ${orderObject.resourceType}`);
-            global.logSystem(orderObject.roomName, `Order cancelled in ${orderObject.roomName} for ${orderObject.resourceType}`);
-            Game.market.cancelOrder(orderObject.id);
-        }
-    });
-};
 
 viralUtil.terminalBroker = function (roomName = undefined) {
 
@@ -423,16 +410,35 @@ viralUtil.lastSales = function () {
 
 };
 
-viralUtil.testOrders = function (roomName, mineral) {
+viralUtil.cancelMarket = function (mineral) {
 
-    let mineralSellOrders = global._sellOrders(mineral),
-        mySellOrders = _.filter(mineralSellOrders, order => {
-            return Game.rooms[order.roomName] ? Game.rooms[order.roomName].my : false;
-    }),
-        sellOrderExists = mySellOrders.length > 0 && _.some(mySellOrders, {roomName: roomName});
+    Room.prototype.cancelAllInactiveOrder = function (mineral) {
 
-    console.log(sellOrderExists);
+        let that = this;
 
+        Object.keys(Game.market.orders).forEach(order => {
+
+            let orderObject = Game.market.orders[order],
+                resourceType = orderObject.resourceType;
+
+            if (resourceType === mineral) {
+
+                let mineralExist = (that.storage.store[resourceType] || 0) + (that.terminal.store[resourceType] || 0) >= global.SELL_COMPOUND[resourceType].maxStorage + global.MIN_COMPOUND_SELL_AMOUNT;
+
+                if (orderObject.type === 'sell' && !orderObject.active && orderObject.roomName === that.name && !mineralExist) {
+                    global.logSystem(orderObject.roomName, `Inactive market order found in ${orderObject.roomName} for ${resourceType}`);
+                    global.logSystem(orderObject.roomName, `Order cancelled in ${orderObject.roomName} for ${resourceType}`);
+                    Game.market.cancelOrder(orderObject.id);
+                    //numberOfOrders--
+                }
+            }
+        });
+    };
+
+    let myRooms = _.filter(Game.rooms, {'my': true});
+
+    for (let room of myRooms)
+        room.cancelAllInactiveOrder(mineral);
 
 };
 
