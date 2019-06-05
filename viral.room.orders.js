@@ -680,7 +680,7 @@ mod.extend = function () {
                                     return order.price >= minPrice;
                                 });
 
-                                if (buyOrders.length > 0) {
+                                if (buyOrders.length > 0 &&  numberOfTransactions.count < 10) {
                                     buyOrder = _.max(buyOrders, 'price');
                                     global.logSystem(that.name, `buyOrder found at ${buyOrder.price} for ${mineral} minPrice: ${minPrice}`);
                                     returnCode = Game.market.deal(buyOrder.id, Math.min(sellAmount, buyOrder.amount), that.name);
