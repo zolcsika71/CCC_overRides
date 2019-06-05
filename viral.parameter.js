@@ -98,70 +98,70 @@ let mod = {
             sell: true, // sell or not
             urgent: true, // false => sell price is the average price of the existing offers, true => sell price is lower then the lowest price
             defaultPrice: 1, // sell price if there is no existing offers, and there is no order above it.
-            rooms: ['E13S5', 'E14S7', 'E15S3', 'E16S27', 'E16S3'], // affected rooms, empty array means all rooms
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23', 'E27S16'], // affected rooms, empty array means all rooms
             maxStorage: 50000 // selling starts above this amount
         },
         XUH2O: {    // +300% attack effectiveness
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23', 'E27S16'],
             maxStorage: 15000
         },
         XKHO2: {    // +300% rangedAttack and rangedMassAttack effectiveness
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23', 'E27S16'],
             maxStorage: 15000
         },
         XLHO2: {    // +300% heal and rangedHeal effectiveness
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23', 'E27S16'],
             maxStorage: 15000
         },
         XGHO2: {    // -70% damage taken
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23', 'E27S16'],
             maxStorage: 15000
         },
         XZH2O: {    // +300% dismantle effectiveness
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23', 'E27S16'],
             maxStorage: 15000
         },
         XKH2O: {    // +150 capacity
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23', 'E27S16'],
             maxStorage: 15000
         },
         XZHO2: {    // +300% fatigue decrease speed
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23', 'E27S16'],
             maxStorage: 15000
         },
         XUHO2: {    // +600% harvest effectiveness
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23', 'E27S16'],
             maxStorage: 9000
         },
         XLH2O: {    // +100% repair and build effectiveness without increasing the energy cost
             sell: true,
             urgent: true,
             defaultPrice: 1,
-            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23'],
+            rooms: ['E13S5', 'E14S7', 'E15S3','E18S8', 'E16S3', 'E16S27', 'E23S24', 'E27S15', 'E27S23', 'E27S16'],
             maxStorage: 9000
         }
     },
@@ -231,7 +231,7 @@ let mod = {
     LIMIT_URGENT_REPAIRING: 750, // urgent repair when hits below
     GAP_REPAIR_DECAYABLE: 800, // decayables (e.g. roads) only get repaired when that much hits are missing
     MEMORY_RESYNC_INTERVAL: 250, // interval to reload spawns & towers present in a room
-    PROCESS_ORDERS_INTERVAL: 500, // interval to process room orders and run terminalBroker
+    PROCESS_ORDERS_INTERVAL: 250, // interval to process room orders and run terminalBroker
     TIME_REPORT: 28000, // ticks between room reports
     REPORT_MAX_LENGTH: 500,
     REPORTS_PER_LOOP: 18,
