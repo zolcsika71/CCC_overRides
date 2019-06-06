@@ -412,34 +412,26 @@ viralUtil.lastSales = function () {
 
 viralUtil.cancelMarket = function (mineral) {
 
-    Room.prototype.cancelAllInactiveOrder = function (mineral) {
+    let cancelAllInactiveOrder = function () {
 
-        let that = this;
-
-        Object.keys(Game.market.orders).forEach(order => {
-
-            let orderObject = Game.market.orders[order],
-                resourceType = orderObject.resourceType;
-
-            if (resourceType === mineral) {
-
-                let mineralExist = (that.storage.store[resourceType] || 0) + (that.terminal.store[resourceType] || 0) >= global.SELL_COMPOUND[resourceType].maxStorage + global.MIN_COMPOUND_SELL_AMOUNT;
-
-                if (orderObject.type === 'sell' && !orderObject.active && orderObject.roomName === that.name && !mineralExist) {
-                    global.logSystem(orderObject.roomName, `Inactive market order found in ${orderObject.roomName} for ${resourceType}`);
-                    global.logSystem(orderObject.roomName, `Order cancelled in ${orderObject.roomName} for ${resourceType}`);
-                    Game.market.cancelOrder(orderObject.id);
-                    //numberOfOrders--
-                }
-            }
+        let inactiveOrders = _.filter(Game.market.orders, order => {
+            return !order.active && order.type === 'sell';
         });
+
+        for (let order of inactiveOrders) {
+
+            let resourceType = order.resourceType,
+                roomName = order.roomName,
+                mineralExist = (this.storage.store[resourceType] || 0) + (this.terminal.store[resourceType] || 0) >= global.SELL_COMPOUND[resourceType].maxStorage + global.MIN_COMPOUND_SELL_AMOUNT;
+
+            if (!mineralExist) {
+                global.logSystem(roomName, `Inactive market order found in ${roomName} for ${resourceType}`);
+                global.logSystem(roomName, `Order cancelled in ${roomName} for ${resourceType}`);
+                Game.market.cancelOrder(order.id);
+                numberOfOrders--
+            }
+        }
     };
-
-    let myRooms = _.filter(Game.rooms, {'my': true});
-
-    for (let room of myRooms)
-        room.cancelAllInactiveOrder(mineral);
-
 };
 
 module.exports = viralUtil;
