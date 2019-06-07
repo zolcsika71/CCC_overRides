@@ -622,13 +622,12 @@ mod.extend = function () {
                             else if (numberOfOrders < 50)
                                 returnValue = makeOrder(mineral, price, sellAmount);
                             else
-                                global.logSystem(that.name, `orders: ${numberOfOrders} returnValue: ${returnValue} - can not make more`);
-
+                                returnValue = 'tooMuch';
 
                             return returnValue;
                         },
                         sellAmount = amount(mineral),
-                        terminalOrderCompleted = sumCompoundType(data.terminal[0].orders, 'orderRemaining')[mineral] <= 0;
+                        terminalOrderCompleted = global.sumCompoundType(data.terminal[0].orders, 'orderRemaining')[mineral] <= 0;
 
                     if (terminalOrderCompleted && sellAmount > 0) {
 
@@ -707,6 +706,8 @@ mod.extend = function () {
                         data.terminal[0].orders = _.filter(data.terminal[0].orders, order => {
                             return order.type !== mineral;
                         })
+                    } else if (returnValue === 'tooMuch') {
+                        global.logSystem(that.name, `orders: ${numberOfOrders} returnValue: ${returnValue} - can not make more`);
                     }
 
                 } else if (numberOfTransactions.count <= 10 && !transacting && (
@@ -876,7 +877,8 @@ mod.extend = function () {
             if (mineral.length !== 5)
                 continue;
 
-            if (!(global.SELL_COMPOUND[mineral] && global.SELL_COMPOUND[mineral].sell
+            if (!(global.SELL_COMPOUND[mineral]
+                && global.SELL_COMPOUND[mineral].sell
                 && (_.some(global.SELL_COMPOUND[mineral].rooms, room => {
                     return room === that.name;
                 }) || global.SELL_COMPOUND[mineral].rooms.length === 0)
