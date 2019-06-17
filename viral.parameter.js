@@ -349,7 +349,7 @@ let mod = {
     // auto flower register labs
     AUTO_REGISTER_LABS: true, // it needs MAKE_COMPOUNDS: true
     // make boostProduction on/off
-    MAKE_COMPOUNDS: true,
+    MAKE_COMPOUNDS: false,
     // checks the rooms in this interval to make compounds
     MAKE_COMPOUNDS_INTERVAL: 5,
     MAKE_REACTIONS_WITH_3LABS: false,
@@ -435,7 +435,7 @@ let mod = {
     MIN_COMPOUND_AMOUNT_TO_MAKE: 3000,
 
     // mineral allocation
-    ALLOCATE_COMPOUNDS: true,
+    ALLOCATE_COMPOUNDS: false,
     ALLOCATE_COMPOUNDS_INTERVAL: 100,
     UNREGISTER_BOOSTLAB_AT: 450,
     COMPOUNDS_TO_ALLOCATE: { // if modified -> delete Memory.compoundsToAllocate
