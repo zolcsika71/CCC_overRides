@@ -434,4 +434,25 @@ viralUtil.cancelMarket = function (mineral) {
     };
 };
 
+viralUtil.look = function (x,y) {
+
+    let pos = new RoomPosition(x, y, 'E25S21'),
+        objects = pos.look(),
+        noObstacle = !_.some(objects, object => {
+
+            console.log(object.type);
+
+            return object.type === 'creep' || (object.type === 'structure' && OBSTACLE_OBJECT_TYPES.includes(object.structureType)) || (object.type === 'terrain' && object.terrain === 'wall')
+
+    });
+
+    global.BB(objects);
+
+    console.log(`noObstacle: ${_.findIndex(stuff, p => p.type === 'creep' || (p.type === 'structure' && OBSTACLE_OBJECT_TYPES.includes(p.structureType)) || (p.type === 'terrain' && p.terrain === 'wall')) === -1}`)
+
+
+
+
+};
+
 module.exports = viralUtil;
