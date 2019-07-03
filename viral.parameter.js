@@ -332,7 +332,8 @@ let mod = {
         TRAVELLING: String.fromCodePoint(0x1F3C3), // 🏃
         UNCHARGING: String.fromCodePoint(0x1F50B), // 🔋
         UPGRADING: String.fromCodePoint(0x1F5FD), // 🗽
-        WITHDRAWING: String.fromCodePoint(0x1F4E4) + String.fromCodePoint(0xFE0E) // 📤
+        WITHDRAWING: String.fromCodePoint(0x1F4E4) + String.fromCodePoint(0xFE0E), // 📤
+        SAFEGEN: String.fromCodePoint(0x1F512) // 🔒
     },
     COOLDOWN: {
         TOWER_URGENT_REPAIR: 10,
