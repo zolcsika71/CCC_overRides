@@ -241,7 +241,7 @@ let mod = {
     ROAD_CONSTRUCTION_INTERVAL: 500,
     ROAD_CONSTRUCTION_MIN_DEVIATION: 1.2,
     ROAD_CONSTRUCTION_ABS_MIN: 3,
-    TIME_ZONE: 1, // zone offset in hours (-12 through +12) from UTC
+    TIME_ZONE: 2, // zone offset in hours (-12 through +12) from UTC
     USE_SUMMERTIME: true, // Please define isSummerTime in global.js to suit to your local summertime rules
     SPAWN_DEFENSE_ON_ATTACK: true, // This will attempt to store enough to have a defense and spawn troops when invaded.
     MANAGED_CONTAINER_TRIGGER: 0.25, // managed containers get filled below this relative energy amount and emptied when above 1-this value
@@ -552,7 +552,7 @@ let mod = {
 
     // internalViral.parameter
     FILL_NUKER: true,
-    AUTO_POWER_MINING: false, //set to false to disable power mining (recomended until 1-2 RCL8+ rooms)
+    AUTO_POWER_MINING: true, //set to false to disable power mining (recomended until 1-2 RCL8+ rooms)
     MAX_AUTO_POWER_MINING_FLAGS: 2,
     POWER_MINE_LOG: true //displays power mining info in console,
 };
