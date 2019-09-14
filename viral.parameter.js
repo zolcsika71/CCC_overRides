@@ -260,7 +260,7 @@ let mod = {
     NOTIFICATE_INVADER: false, // Also log common 'Invader' hostiles
     NOTIFICATE_INTRUDER: true, // Log any hostiles in your rooms
     NOTIFICATE_HOSTILES: true, // Log any hostiles - Ignores NOTIFICATE_INTRUDER and NOTIFICATE_INVADER
-    COMBAT_CREEPS_RESPECT_RAMPARTS: true, // causes own creeps not to leave through ramparts when defending
+    COMBAT_CREEPS_RESPECT_RAMPARTS: false, // causes own creeps not to leave through ramparts when defending
     COST_MATRIX_VALIDITY: 1000,
     // function parameters: room. expected result: array
     CONSTRUCTION_PRIORITY: [STRUCTURE_SPAWN,STRUCTURE_EXTENSION,STRUCTURE_LINK,STRUCTURE_TERMINAL,STRUCTURE_STORAGE,STRUCTURE_TOWER,STRUCTURE_POWER_SPAWN,STRUCTURE_NUKER,STRUCTURE_OBSERVER,STRUCTURE_ROAD,STRUCTURE_CONTAINER,STRUCTURE_EXTRACTOR,STRUCTURE_LAB,STRUCTURE_WALL,STRUCTURE_RAMPART],
@@ -291,7 +291,7 @@ let mod = {
         'OverlordQ','Nibinhilion','Crowsbane','Yew','BogdanBiv','s1akr','Pandabear41','Logmadr','Patrik','novice','Conquest','ofirl','GeorgeBerkeley','TTR','tynstar','K-C','Hoekynl','Sunri5e',
         'AgOrange','distantcam','Lisp','bbdMinimbl','Twill','Logxen','miR','Spedwards','Krazyfuq','Icesory','chobobobo','deft-code','mmmd','DKPlugins','pavelnieks','buckley310','almaravarion',
         'SSH','Perrytheplatypus','Jnesselr','ryagas','xXtheguy52Xx','SEATURTLEKING','DasBrain','C00k1e_93','Currency','Vykook','shedletsky','Aranatha','Montblanc','emb3r','Mudla','Vladthepaler',
-        'kikooo','CanisMinor','NekoSama','Dravo','zolcsika','Saint','Komir', 'DoctorPC', 'omnomwombat', 'Geir1983', 'likeafox', `Smitt33`],
+        'kikooo','CanisMinor','NekoSama','Dravo','zolcsika','Saint','Komir', 'DoctorPC', 'omnomwombat', 'Geir1983', `Smitt33`],
     // Don't attack. Must be a member of CCC for permanent whitelisting in git repository. But you can change your own copy... Please ask if you are interested in joining CCC :)
     DEFENSE_BLACKLIST: [], // Don't defend those rooms (add room names). Blocks spawning via defense task (will not prevent offensive actions at all)
     CRITICAL_BUCKET_LEVEL: 1000, // take action when the bucket drops below this value to prevent the bucket from actually running out
@@ -439,7 +439,7 @@ let mod = {
     MIN_COMPOUND_AMOUNT_TO_MAKE: 3000,
 
     // mineral allocation
-    ALLOCATE_COMPOUNDS: false,
+    ALLOCATE_COMPOUNDS: true,
     ALLOCATE_COMPOUNDS_INTERVAL: 100,
     UNREGISTER_BOOSTLAB_AT: 450,
     COMPOUNDS_TO_ALLOCATE: { // if modified -> delete Memory.compoundsToAllocate
@@ -471,7 +471,7 @@ let mod = {
         XUH2O : {       // +300% attack effectiveness
             allocate: true,
             allocateRooms: [],
-            roomThreshold: 15000,
+            roomThreshold: 10000,
             amount: 3000,
             storeTo: 'storage',
             labRefilledAt: 1500
@@ -479,7 +479,7 @@ let mod = {
         XKHO2 : {       // +300% rangedAttack and rangedMassAttack effectiveness
             allocate: true,
             allocateRooms: [],
-            roomThreshold: 15000,
+            roomThreshold: 10000,
             amount: 3000,
             storeTo: 'storage',
             labRefilledAt: 1500
@@ -487,7 +487,7 @@ let mod = {
         XLHO2 : {       // +300% heal and rangedHeal effectiveness
             allocate: true,
             allocateRooms: [],
-            roomThreshold: 15000,
+            roomThreshold: 10000,
             amount: 3000,
             storeTo: 'storage',
             labRefilledAt: 1500
@@ -495,7 +495,7 @@ let mod = {
         XGHO2 : {       //-70% damage taken
             allocate: true,
             allocateRooms: [],
-            roomThreshold: 15000,
+            roomThreshold: 10000,
             amount: 3000,
             storeTo: 'storage',
             labRefilledAt: 1500
@@ -519,7 +519,7 @@ let mod = {
         XZHO2 : {       // +300% fatigue decrease speed
             allocate: true,
             allocateRooms: [],
-            roomThreshold: 15000,
+            roomThreshold: 10000,
             amount: 3000,
             storeTo: 'storage',
             labRefilledAt: 1500
@@ -552,7 +552,7 @@ let mod = {
 
     // internalViral.parameter
     FILL_NUKER: true,
-    AUTO_POWER_MINING: true, //set to false to disable power mining (recomended until 1-2 RCL8+ rooms)
+    AUTO_POWER_MINING: false, //set to false to disable power mining (recomended until 1-2 RCL8+ rooms)
     MAX_AUTO_POWER_MINING_FLAGS: 2,
     POWER_MINE_LOG: true //displays power mining info in console,
 };

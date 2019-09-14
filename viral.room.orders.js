@@ -691,6 +691,8 @@ mod.extend = function () {
 
                 if (global.SELL_COMPOUND[mineral] && global.SELL_COMPOUND[mineral].sell) {
 
+                    /*
+
                     global.logSystem(this.name, `trying to make sell order for ${mineral}`);
 
                     let returnValue = makeSellOrder(mineral);
@@ -709,6 +711,9 @@ mod.extend = function () {
                     } else if (returnValue === 'tooMuch') {
                         global.logSystem(that.name, `orders: ${numberOfOrders} returnValue: ${returnValue} - can not make more`);
                     }
+
+
+                     */
 
                 } else if (numberOfTransactions.count <= 10 && !transacting && (
                     (mineral === this.memory.mineralType && this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)
