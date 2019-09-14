@@ -605,12 +605,14 @@ mod.extend = function () {
                         },
                         makeOrder = function (mineral, price, sellAmount) {
 
+                            global.logSystem('number of orders:', `${numberOfOrders}`);
+
                             returnValue = Game.market.createOrder(ORDER_SELL, mineral, price, sellAmount, that.name);
                             if (returnValue === OK) {
-                                global.logSystem(that.name, `sell order created for => resourceType: ${mineral} price: ${price} totalAmount: ${sellAmount}`);
+                                global.logSystem(that.name, `sell order ${numberOfOrders}. created for => resourceType: ${mineral} price: ${price} totalAmount: ${sellAmount}`);
                                 numberOfOrders++;
                             } else if (!_.isUndefined(returnValue))
-                                global.logSystem(that.name, `sell order FAILED for => resourceType: ${mineral} price: ${price} totalAmount: ${sellAmount} errorCode: ${global.translateErrorCode(returnValue)}`);
+                                global.logSystem(that.name, `sell order ${numberOfOrders}. FAILED for => resourceType: ${mineral} price: ${price} totalAmount: ${sellAmount} errorCode: ${global.translateErrorCode(returnValue)}`);
 
                             return returnValue;
 
