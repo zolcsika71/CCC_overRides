@@ -439,7 +439,7 @@ let mod = {
     MIN_COMPOUND_AMOUNT_TO_MAKE: 3000,
 
     // mineral allocation
-    ALLOCATE_COMPOUNDS: true,
+    ALLOCATE_COMPOUNDS: false,
     ALLOCATE_COMPOUNDS_INTERVAL: 100,
     UNREGISTER_BOOSTLAB_AT: 450,
     COMPOUNDS_TO_ALLOCATE: { // if modified -> delete Memory.compoundsToAllocate
