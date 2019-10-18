@@ -435,11 +435,11 @@ let mod = {
         }
     },
     TRADE_THRESHOLD: 1000,
-    MIN_OtFFER_AMOUNT: 100,
+    MIN_OFFER_AMOUNT: 100,
     MIN_COMPOUND_AMOUNT_TO_MAKE: 3000,
 
     // mineral allocation
-    ALLOCATE_COMPOUNDS: false,
+    ALLOCATE_COMPOUNDS: true,
     ALLOCATE_COMPOUNDS_INTERVAL: 100,
     UNREGISTER_BOOSTLAB_AT: 450,
     COMPOUNDS_TO_ALLOCATE: { // if modified -> delete Memory.compoundsToAllocate
