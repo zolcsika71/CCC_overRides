@@ -173,8 +173,8 @@ mod.trainMemory = (flag, trainNum) => {
 mod.members = {
     trainTurret: [
         'trainLeader',
-        'trainLeader',
-        'trainLeader'
+        'trainMedic',
+        'trainRanged'
     ]
 };
 mod.creep = {

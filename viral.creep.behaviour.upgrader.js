@@ -109,6 +109,7 @@ viralCreepBehaviourUpgrader.run = function (creep) {
             return containerSpots.length ? containerSpots : (storageSpots.length ? storageSpots : terminalSpots);
         };
         let spots = determineSpots();
+        console.log(`spots: ${spots.length}`);
         if (spots.length > 0) {
             // allow spots near sources
             spots = determineSpots(true);
@@ -137,8 +138,16 @@ viralCreepBehaviourUpgrader.run = function (creep) {
         }
         if (!creep.data.determinatedSpot) {
             logError('Unable to determine working location for upgrader in room ' + creep.pos.roomName);
+            creep.travelTo(creep.room.controller, 3);
+            if (creep.pos.getRangeTo(creep.room.controller) <= 3)
+                creep.data.determinatedSpot = {
+                    x: creep.pos.x,
+                    y: creep.pos.y
+                };
+
         } else if (global.SAY_ASSIGNMENT) creep.say(String.fromCharCode(9962), global.SAY_PUBLIC);
     }
+
     if (creep.data.determinatedSpot) {
 
         creep.controllerSign();
