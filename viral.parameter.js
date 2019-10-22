@@ -291,7 +291,7 @@ let mod = {
         'OverlordQ','Nibinhilion','Crowsbane','Yew','BogdanBiv','s1akr','Pandabear41','Logmadr','Patrik','novice','Conquest','ofirl','GeorgeBerkeley','TTR','tynstar','K-C','Hoekynl','Sunri5e',
         'AgOrange','distantcam','Lisp','bbdMinimbl','Twill','Logxen','miR','Spedwards','Krazyfuq','Icesory','chobobobo','deft-code','mmmd','DKPlugins','pavelnieks','buckley310','almaravarion',
         'SSH','Perrytheplatypus','Jnesselr','ryagas','xXtheguy52Xx','SEATURTLEKING','DasBrain','C00k1e_93','Currency','Vykook','shedletsky','Aranatha','Montblanc','emb3r','Mudla','Vladthepaler',
-        'kikooo','CanisMinor','NekoSama','Dravo','zolcsika','Saint','Komir', 'DoctorPC', 'omnomwombat', 'Geir1983', `Smitt33`],
+        'kikooo','CanisMinor','NekoSama','Dravo','zolcsika','Saint','Komir', 'DoctorPC', 'omnomwombat', 'Geir1983', `Smitt33`, 'Orlet'],
     // Don't attack. Must be a member of CCC for permanent whitelisting in git repository. But you can change your own copy... Please ask if you are interested in joining CCC :)
     DEFENSE_BLACKLIST: [], // Don't defend those rooms (add room names). Blocks spawning via defense task (will not prevent offensive actions at all)
     CRITICAL_BUCKET_LEVEL: 1000, // take action when the bucket drops below this value to prevent the bucket from actually running out
@@ -353,7 +353,7 @@ let mod = {
     // auto flower register labs
     AUTO_REGISTER_LABS: true, // it needs MAKE_COMPOUNDS: true
     // make boostProduction on/off
-    MAKE_COMPOUNDS: false,
+    MAKE_COMPOUNDS: true,
     // checks the rooms in this interval to make compounds
     MAKE_COMPOUNDS_INTERVAL: 5,
     MAKE_REACTIONS_WITH_3LABS: false,
@@ -481,7 +481,7 @@ let mod = {
             allocateRooms: [],
             roomThreshold: 10000,
             amount: 3000,
-            storeTo: 'storage',
+            storeTo: 'lab',
             labRefilledAt: 1500
         },
         XLHO2 : {       // +300% heal and rangedHeal effectiveness
@@ -489,7 +489,7 @@ let mod = {
             allocateRooms: [],
             roomThreshold: 10000,
             amount: 3000,
-            storeTo: 'storage',
+            storeTo: 'lab',
             labRefilledAt: 1500
         },
         XGHO2 : {       //-70% damage taken
@@ -497,7 +497,7 @@ let mod = {
             allocateRooms: [],
             roomThreshold: 10000,
             amount: 3000,
-            storeTo: 'storage',
+            storeTo: 'lab',
             labRefilledAt: 1500
         },
         XZH2O : {       // +300% dismantle effectiveness
@@ -505,7 +505,7 @@ let mod = {
             allocateRooms: [],
             roomThreshold: 15000,
             amount: 3000,
-            storeTo: 'storage',
+            storeTo: 'lab',
             labRefilledAt: 1500
         },
         XKH2O : {       // +150 capacity
@@ -521,7 +521,7 @@ let mod = {
             allocateRooms: [],
             roomThreshold: 10000,
             amount: 3000,
-            storeTo: 'storage',
+            storeTo: 'lab',
             labRefilledAt: 1500
         },
         XUHO2 : {       // +600% harvest effectiveness

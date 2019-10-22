@@ -138,7 +138,7 @@ viralCreepBehaviourUpgrader.run = function (creep) {
         }
         if (!creep.data.determinatedSpot) {
             logError('Unable to determine working location for upgrader in room ' + creep.pos.roomName);
-            creep.travelTo(creep.room.controller, 3);
+            creep.travelTo(creep.room.controller);
             if (creep.pos.getRangeTo(creep.room.controller) <= 3)
                 creep.data.determinatedSpot = {
                     x: creep.pos.x,
