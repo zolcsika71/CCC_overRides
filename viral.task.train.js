@@ -129,7 +129,7 @@ mod.checkForRequiredCreeps = (flag) => {
                         minEnergyCapacity: definition.minEnergyCapacity,
                         rangeRclRatio: 1,
                         allowTargetRoom: true,
-                        explicit: 'E26S13'
+                        explicit: 'E23S17'
                     },
                     creepSetup => { // onQueued callback
                         memory.queued.push({
