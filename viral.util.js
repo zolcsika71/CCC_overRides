@@ -279,7 +279,7 @@ viralUtil.terminalBroker = function (roomName = undefined) {
         Game.rooms[roomName].terminalBroker();
 };
 
-viralUtil.fixTerminal = function(roomName) {
+viralUtil.fixTerminal = function (roomName) {
 
     let room = Game.rooms[roomName],
         data = room.memory.resources,
@@ -400,7 +400,7 @@ viralUtil.deleteTerminalOrder = function (roomName) {
 viralUtil.lastSales = function () {
 
     let outgoingTransactions = _.filter(Game.market.outgoingTransactions, transaction => {
-       return transaction.resourceType.length === 5;
+        return transaction.resourceType.length === 5;
     });
 
     for (let transaction of outgoingTransactions) {
@@ -444,14 +444,38 @@ viralUtil.look = function (x,y) {
 
             return object.type === 'creep' || (object.type === 'structure' && OBSTACLE_OBJECT_TYPES.includes(object.structureType)) || (object.type === 'terrain' && object.terrain === 'wall')
 
-    });
-
+        });
     global.BB(objects);
 
     console.log(`noObstacle: ${_.findIndex(stuff, p => p.type === 'creep' || (p.type === 'structure' && OBSTACLE_OBJECT_TYPES.includes(p.structureType)) || (p.type === 'terrain' && p.terrain === 'wall')) === -1}`)
 
 
+};
 
+viralUtil.createLab = function (roomName) {
+
+    let create = function (roomName) {
+
+        if (_.isUndefined(Memory.rooms[roomName].resources))
+            Memory.rooms[roomName].resources = {};
+
+        Memory.rooms[roomName].resources.lab = [];
+        for (let x in Memory.rooms[roomName].labs) {
+            let lab = Memory.rooms[roomName].labs[x] ;
+            let obj = {id: lab.id, orders: [], reactionState: 'idle'};
+            Memory.rooms[roomName].resources.lab[x] = obj;e
+        }
+    };
+
+
+
+    if (roomName === undefined) {
+        let myRooms = _.filter(Game.rooms, {'my': true});
+
+        for (let room of myRooms)
+            create(room.name);
+    } else
+        create(roomName);
 
 };
 
