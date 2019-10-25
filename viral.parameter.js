@@ -477,32 +477,32 @@ let mod = {
             labRefilledAt: 1500
         },
         XKHO2 : {       // +300% rangedAttack and rangedMassAttack effectiveness
-            allocate: true,
-            allocateRooms: [],
+            allocate: false,
+            allocateRooms: ['E23S17'],
             roomThreshold: 10000,
             amount: 3000,
             storeTo: 'lab',
             labRefilledAt: 1500
         },
         XLHO2 : {       // +300% heal and rangedHeal effectiveness
-            allocate: true,
-            allocateRooms: [],
+            allocate: false,
+            allocateRooms: ['E23S17'],
             roomThreshold: 10000,
             amount: 3000,
             storeTo: 'lab',
             labRefilledAt: 1500
         },
         XGHO2 : {       //-70% damage taken
-            allocate: true,
-            allocateRooms: [],
+            allocate: false,
+            allocateRooms: ['E23S17'],
             roomThreshold: 10000,
             amount: 3000,
             storeTo: 'lab',
             labRefilledAt: 1500
         },
         XZH2O : {       // +300% dismantle effectiveness
-            allocate: true,
-            allocateRooms: [],
+            allocate: false,
+            allocateRooms: ['E23S17'],
             roomThreshold: 15000,
             amount: 3000,
             storeTo: 'lab',
@@ -517,8 +517,8 @@ let mod = {
             labRefilledAt: 1500
         },
         XZHO2 : {       // +300% fatigue decrease speed
-            allocate: true,
-            allocateRooms: [],
+            allocate: false,
+            allocateRooms: ['E23S17'],
             roomThreshold: 10000,
             amount: 3000,
             storeTo: 'lab',
