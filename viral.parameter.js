@@ -369,7 +369,7 @@ let mod = {
         },
         GH2O: {        // +80% upgradeController effectiveness without increasing the energy cost
             make: true,
-            roomThreshold: 50000,
+            roomThreshold: 10000,
             amount: 3000,
             rooms: []
         },
@@ -477,32 +477,32 @@ let mod = {
             labRefilledAt: 1500
         },
         XKHO2 : {       // +300% rangedAttack and rangedMassAttack effectiveness
-            allocate: false,
-            allocateRooms: ['E23S17'],
+            allocate: true,
+            allocateRooms: ['E27S15'],
             roomThreshold: 10000,
             amount: 3000,
             storeTo: 'lab',
             labRefilledAt: 1500
         },
         XLHO2 : {       // +300% heal and rangedHeal effectiveness
-            allocate: false,
-            allocateRooms: ['E23S17'],
+            allocate: true,
+            allocateRooms: ['E27S15'],
             roomThreshold: 10000,
             amount: 3000,
             storeTo: 'lab',
             labRefilledAt: 1500
         },
         XGHO2 : {       //-70% damage taken
-            allocate: false,
-            allocateRooms: ['E23S17'],
+            allocate: true,
+            allocateRooms: ['E27S15'],
             roomThreshold: 10000,
             amount: 3000,
             storeTo: 'lab',
             labRefilledAt: 1500
         },
         XZH2O : {       // +300% dismantle effectiveness
-            allocate: false,
-            allocateRooms: ['E23S17'],
+            allocate: true,
+            allocateRooms: ['E27S15'],
             roomThreshold: 15000,
             amount: 3000,
             storeTo: 'lab',
@@ -517,8 +517,8 @@ let mod = {
             labRefilledAt: 1500
         },
         XZHO2 : {       // +300% fatigue decrease speed
-            allocate: false,
-            allocateRooms: ['E23S17'],
+            allocate: true,
+            allocateRooms: ['E27S15'],
             roomThreshold: 10000,
             amount: 3000,
             storeTo: 'lab',
@@ -552,7 +552,7 @@ let mod = {
 
     // internalViral.parameter
     FILL_NUKER: true,
-    AUTO_POWER_MINING: false, //set to false to disable power mining (recomended until 1-2 RCL8+ rooms)
+    AUTO_POWER_MINING: true, //set to false to disable power mining (recomended until 1-2 RCL8+ rooms)
     MAX_AUTO_POWER_MINING_FLAGS: 2,
     POWER_MINE_LOG: true //displays power mining info in console,
 };
