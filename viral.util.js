@@ -461,7 +461,7 @@ viralUtil.createLab = function (roomName) {
 
         Memory.rooms[roomName].resources.lab = [];
         for (let x in Memory.rooms[roomName].labs) {
-            let lab = Memory.rooms[roomName].labs[x] ;
+            let lab = Memory.rooms[roomName].labs[x];
             let obj = {id: lab.id, orders: [], reactionState: 'idle'};
             Memory.rooms[roomName].resources.lab[x] = obj;
         }
@@ -478,5 +478,13 @@ viralUtil.createLab = function (roomName) {
         create(roomName);
 
 };
+
+viralUtil.clearRoomMemory = () => {
+    Object.keys(Memory.rooms).forEach(room => {
+        if ((_.isUndefined(Game.rooms[room]) || !Game.rooms[room].my) && room !== 'myTotalSites' && room !== 'myTotalStructures')
+            delete Memory.rooms[room];
+    })
+};
+
 
 module.exports = viralUtil;
