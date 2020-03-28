@@ -463,7 +463,7 @@ viralUtil.createLab = function (roomName) {
         for (let x in Memory.rooms[roomName].labs) {
             let lab = Memory.rooms[roomName].labs[x] ;
             let obj = {id: lab.id, orders: [], reactionState: 'idle'};
-            Memory.rooms[roomName].resources.lab[x] = obj;e
+            Memory.rooms[roomName].resources.lab[x] = obj;
         }
     };
 

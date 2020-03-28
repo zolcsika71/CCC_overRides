@@ -6,14 +6,14 @@ let mod = {
     OOPS: true, // Creeps say Oops when dropping energy during dropmining
     SAY_ASSIGNMENT: true, // say a symbol representing the assiged action
     SAY_PUBLIC: true, // creeps talk public
-    DEBUG: true, // gimme some more details, use false not undefined to unset
+    DEBUG: false, // gimme some more details, use false not undefined to unset
     DEBUG_STACKS: false, // add stack frame to EVERY console.log message (spammy!)
     TRACE: false, // use Memory.debugTrace for low-level information
     PROFILE: false, // enable CPU profiling
     PROFILING: {
         ANALYZE_LIMIT: 2, // profile warning levels
         AVERAGE_USAGE: true, // display average creep & flag usage
-        BASIC_ONLY: false, // only display basic profiling information, disables all other profiling
+        BASIC_ONLY: true, // only display basic profiling information, disables all other profiling
         BEHAVIOUR: true, // profile behaviour action assignment
         CREEPS: true, // display creep profiling information
         CREEP_TYPE: '', // define a specific creep to profile, requires CREEPS=true
@@ -30,7 +30,7 @@ let mod = {
     TRAVELER_STUCK_TICKS: 2, // Number of ticks not moving to be considered stuck by the Traveler API
     TRAVELER_THRESHOLD: 5, // Average creep CPU usage/tick before warning about pathing cost, starts after 25 ticks
     USE_UNBUILT_ROADS: true, // enabling this will set the pathing cost of road construction sites to that of roads
-    GRAFANA: true, // track for Grafana data
+    GRAFANA: false, // track for Grafana data
     GRAFANA_INTERVAL: 15, // loops between Grafana tracking - No lower than 3.
     CENSUS_ANNOUNCEMENTS: false, // log birth and death
     OFFSPRING_ANNOUNCEMENTS: false,
@@ -291,7 +291,7 @@ let mod = {
         'OverlordQ','Nibinhilion','Crowsbane','Yew','BogdanBiv','s1akr','Pandabear41','Logmadr','Patrik','novice','Conquest','ofirl','GeorgeBerkeley','TTR','tynstar','K-C','Hoekynl','Sunri5e',
         'AgOrange','distantcam','Lisp','bbdMinimbl','Twill','Logxen','miR','Spedwards','Krazyfuq','Icesory','chobobobo','deft-code','mmmd','DKPlugins','pavelnieks','buckley310','almaravarion',
         'SSH','Perrytheplatypus','Jnesselr','ryagas','xXtheguy52Xx','SEATURTLEKING','DasBrain','C00k1e_93','Currency','Vykook','shedletsky','Aranatha','Montblanc','emb3r','Mudla','Vladthepaler',
-        'kikooo','CanisMinor','NekoSama','Dravo','zolcsika','Saint','Komir', 'DoctorPC', 'omnomwombat', 'Geir1983', `Smitt33`, 'Orlet'],
+        'kikooo','CanisMinor','NekoSama','Dravo','zolcsika','Saint','Komir', 'DoctorPC', 'omnomwombat', 'Geir1983', 'Smitt33', 'Orlet', 'admon'],
     // Don't attack. Must be a member of CCC for permanent whitelisting in git repository. But you can change your own copy... Please ask if you are interested in joining CCC :)
     DEFENSE_BLACKLIST: [], // Don't defend those rooms (add room names). Blocks spawning via defense task (will not prevent offensive actions at all)
     CRITICAL_BUCKET_LEVEL: 1000, // take action when the bucket drops below this value to prevent the bucket from actually running out
@@ -552,7 +552,7 @@ let mod = {
 
     // internalViral.parameter
     FILL_NUKER: true,
-    AUTO_POWER_MINING: true, //set to false to disable power mining (recomended until 1-2 RCL8+ rooms)
+    AUTO_POWER_MINING: false, //set to false to disable power mining (recomended until 1-2 RCL8+ rooms)
     MAX_AUTO_POWER_MINING_FLAGS: 2,
     POWER_MINE_LOG: true //displays power mining info in console,
 };
