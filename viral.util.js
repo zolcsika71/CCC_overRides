@@ -480,10 +480,17 @@ viralUtil.createLab = function (roomName) {
 };
 
 viralUtil.clearRoomMemory = () => {
+    //Memory.pause = true;
+    console.log(`${Object.keys(Memory.rooms).length}`);
     Object.keys(Memory.rooms).forEach(room => {
-        if ((_.isUndefined(Game.rooms[room]) || !Game.rooms[room].my) && room !== 'myTotalSites' && room !== 'myTotalStructures')
+        if ((_.isUndefined(Game.rooms[room]) || !Game.rooms[room].my) && room !== 'myTotalSites' && room !== 'myTotalStructures') {
             delete Memory.rooms[room];
-    })
+            console.log(`${room}`);
+        }
+    });
+    console.log(`${Object.keys(Memory.rooms).length}`);
+    delete Memory.routeRange;
+    //Memory.pause = false;
 };
 
 
