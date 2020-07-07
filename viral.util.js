@@ -493,5 +493,31 @@ viralUtil.clearRoomMemory = () => {
     //Memory.pause = false;
 };
 
+viralUtil.createResources = () => {
+
+    let rooms = _.filter(Game.rooms, (room) => {
+        return room.my && room.storage && room.terminal;
+    });
+
+    for (let j = 0; j < rooms.length; j++) {
+        let room = rooms[j];
+        if (room.memory.resources === undefined) {
+            room.memory.resources = {
+                lab: [],
+                powerSpawn: [],
+                nuker: [],
+                container: [],
+                terminal: [],
+                storage: [],
+                offers: [],
+                orders: [],
+                reactions: {},
+            };
+            room.memory.resources.reactions.orders = [];
+        }
+    }
+
+};
+
 
 module.exports = viralUtil;

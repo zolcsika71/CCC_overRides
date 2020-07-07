@@ -99,70 +99,70 @@ let mod = {
             urgent: true, // false => sell price is the average price of the existing offers, true => sell price is lower then the lowest price
             defaultPrice: 1, // sell price if there is no existing offers, and there is no order above it.
             rooms: [], // affected rooms, empty array means all rooms
-            maxStorage: 50000 // selling starts above this amount
+            maxStorage: 20000 // selling starts above this amount
         },
         XUH2O: {    // +300% attack effectiveness
             sell: true,
             urgent: true,
             defaultPrice: 1,
             rooms: [],
-            maxStorage: 15000
+            maxStorage: 10000
         },
         XKHO2: {    // +300% rangedAttack and rangedMassAttack effectiveness
             sell: true,
             urgent: true,
             defaultPrice: 1,
             rooms: [],
-            maxStorage: 15000
+            maxStorage: 10000
         },
         XLHO2: {    // +300% heal and rangedHeal effectiveness
             sell: true,
             urgent: true,
             defaultPrice: 1,
             rooms: [],
-            maxStorage: 15000
+            maxStorage: 10000
         },
         XGHO2: {    // -70% damage taken
             sell: true,
             urgent: true,
             defaultPrice: 1,
             rooms: [],
-            maxStorage: 15000
+            maxStorage: 10000
         },
         XZH2O: {    // +300% dismantle effectiveness
             sell: true,
             urgent: true,
             defaultPrice: 1,
             rooms: [],
-            maxStorage: 15000
+            maxStorage: 10000
         },
         XKH2O: {    // +150 capacity
             sell: true,
             urgent: true,
             defaultPrice: 1,
             rooms: [],
-            maxStorage: 15000
+            maxStorage: 10000
         },
         XZHO2: {    // +300% fatigue decrease speed
             sell: true,
             urgent: true,
             defaultPrice: 1,
             rooms: [],
-            maxStorage: 15000
+            maxStorage: 10000
         },
         XUHO2: {    // +600% harvest effectiveness
             sell: true,
             urgent: true,
             defaultPrice: 1,
             rooms: [],
-            maxStorage: 9000
+            maxStorage: 5000
         },
         XLH2O: {    // +100% repair and build effectiveness without increasing the energy cost
             sell: true,
             urgent: true,
             defaultPrice: 1,
             rooms: [],
-            maxStorage: 9000
+            maxStorage: 5000
         }
     },
     ROOM_TRADING: true, // set this true to enable haulers within your colony to request resources from other rooms in your colony
@@ -353,7 +353,7 @@ let mod = {
     // auto flower register labs
     AUTO_REGISTER_LABS: true, // it needs MAKE_COMPOUNDS: true
     // make boostProduction on/off
-    MAKE_COMPOUNDS: false,
+    MAKE_COMPOUNDS: true,
     // checks the rooms in this interval to make compounds
     MAKE_COMPOUNDS_INTERVAL: 5,
     MAKE_REACTIONS_WITH_3LABS: false,
@@ -375,7 +375,7 @@ let mod = {
         },
         XGH2O: {        // +100% upgradeController effectiveness without increasing the energy cost
             make: true,
-            roomThreshold: 50000,
+            roomThreshold: 25000,
             amount: 3000,
             rooms: []
         },
@@ -439,7 +439,7 @@ let mod = {
     MIN_COMPOUND_AMOUNT_TO_MAKE: 3000,
 
     // mineral allocation
-    ALLOCATE_COMPOUNDS: false,
+    ALLOCATE_COMPOUNDS: true,
     ALLOCATE_COMPOUNDS_INTERVAL: 100,
     UNREGISTER_BOOSTLAB_AT: 450,
     COMPOUNDS_TO_ALLOCATE: { // if modified -> delete Memory.compoundsToAllocate
@@ -454,9 +454,9 @@ let mod = {
         XGH2O : {       // +100% upgradeController effectiveness without increasing the energy cost
             allocate: true, // allocate this compound
             allocateRooms: [], // rooms to allocate, leave it empty for all rooms
-            roomThreshold: 50000, // room allocating will start when compound is below roomThreshold
+            roomThreshold: 25000, // room allocating will start when compound is below roomThreshold
             amount: 3000,  // amount to allocate
-            storeTo: 'storage', // 'storage' or 'lab'
+            storeTo: 'lab', // 'storage' or 'lab'
             labRefilledAt: 1500 // lab refilled below this amount, it is meaningless if storeTo = 'storage'
         },
         GH2O : {       // +80% upgradeController effectiveness without increasing the energy cost
