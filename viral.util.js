@@ -520,4 +520,45 @@ viralUtil.createResources = () => {
 };
 
 
+/*
+Orders[
+{id:, type:, amount:, offers[amount:, room:]}
+]
+
+Offers [
+{id:, type:, amount:, room:}
+]
+
+reactions {
+orders[id: type: mode: amount:], reactorType:, seed_a:, seed_b:, reactorMode:
+}
+
+candidates [
+{room:, readyOffers:}
+]
+
+
+boostTiming {
+
+reactionPlaced:
+ordersPlaced:
+reactionMaking:
+checkRoomAt:
+orderAttempt:
+ordersReady = {
+                time: Game.time,
+                orderCandidates: [{room: offer.room, readyOffers: readyOffersFound}]
+            };
+
+}
+
+terminal[
+id:
+orders[
+{type: orderamount: orderRemaining: storeAmount:}
+]
+]
+ */
+
+
 module.exports = viralUtil;
