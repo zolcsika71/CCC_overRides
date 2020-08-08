@@ -144,13 +144,13 @@ viralUtil.launchNuke = function (roomA, roomB, x, y) {
     if (!nuke.isActive())
         return false;
 
-    if (nuke.energy < nuke.energyCapacity) {
+    if (nuke.store['energy'] < nuke.store.getCapacity('energy')) {
         console.log(`not enough energy to launch nuke! energy: ${nuke.energy} energyCapacity: ${nuke.energyCapacity}`);
         return false;
     }
 
-    if (nuke.ghodium < nuke.ghodiumCapacity) {
-        console.log(`not enough G to launch nuke! ghodium: ${nuke.ghodium} ghodiumCapacity: ${nuke.ghodiumCapacity}`);
+    if (nuke.store['G'] < nuke.store.getCapacity('G')) {
+        console.log(`not enough G to launch nuke! ghodium: ${nuke.store['G']} ghodiumCapacity: ${nuke.store.getCapacity('G')}`);
         return false;
     }
 
@@ -160,7 +160,6 @@ viralUtil.launchNuke = function (roomA, roomB, x, y) {
         console.log('Nuke LAUNCHED!!!');
     else
         console.log(`Nuke launch failed: ${translateErrorCode(returnValue)}`);
-
 
 };
 
@@ -202,10 +201,12 @@ viralUtil.terminalFull = function () {
 
         let sumTerminal = _.sum(room.terminal.store);
 
-        if (sumTerminal >= STORAGE_CAPACITY * 0.9)
-            console.log(`${room.name} ${sumTerminal / STORAGE_CAPACITY}`);
+        if (sumTerminal >= room.terminal.store.getCapacity() * 0.9)
+            console.log(`${room.name} ${sumTerminal / room.terminal.store.getCapacity()}`);
 
     }
+
+    console.log(`there is no full terminal`);
 
 };
 

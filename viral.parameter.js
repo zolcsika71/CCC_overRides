@@ -30,7 +30,7 @@ let mod = {
     TRAVELER_STUCK_TICKS: 2, // Number of ticks not moving to be considered stuck by the Traveler API
     TRAVELER_THRESHOLD: 5, // Average creep CPU usage/tick before warning about pathing cost, starts after 25 ticks
     USE_UNBUILT_ROADS: true, // enabling this will set the pathing cost of road construction sites to that of roads
-    GRAFANA: false, // track for Grafana data
+    GRAFANA: true, // track for Grafana data
     GRAFANA_INTERVAL: 15, // loops between Grafana tracking - No lower than 3.
     CENSUS_ANNOUNCEMENTS: false, // log birth and death
     OFFSPRING_ANNOUNCEMENTS: false,
@@ -353,7 +353,7 @@ let mod = {
     // auto flower register labs
     AUTO_REGISTER_LABS: true, // it needs MAKE_COMPOUNDS: true
     // make boostProduction on/off
-    MAKE_COMPOUNDS: true,
+    MAKE_COMPOUNDS: false,
     // checks the rooms in this interval to make compounds
     MAKE_COMPOUNDS_INTERVAL: 5,
     MAKE_REACTIONS_WITH_3LABS: false,
@@ -454,7 +454,7 @@ let mod = {
         XGH2O : {       // +100% upgradeController effectiveness without increasing the energy cost
             allocate: true, // allocate this compound
             allocateRooms: [], // rooms to allocate, leave it empty for all rooms
-            roomThreshold: 25000, // room allocating will start when compound is below roomThreshold
+            roomThreshold: 5000, // room allocating will start when compound is below roomThreshold
             amount: 3000,  // amount to allocate
             storeTo: 'lab', // 'storage' or 'lab'
             labRefilledAt: 1500 // lab refilled below this amount, it is meaningless if storeTo = 'storage'
@@ -469,7 +469,7 @@ let mod = {
             labRefilledAt: 1500
         },
         XUH2O : {       // +300% attack effectiveness
-            allocate: true,
+            allocate: false,
             allocateRooms: [],
             roomThreshold: 10000,
             amount: 3000,
@@ -552,7 +552,7 @@ let mod = {
 
     // internalViral.parameter
     FILL_NUKER: true,
-    AUTO_POWER_MINING: false, //set to false to disable power mining (recomended until 1-2 RCL8+ rooms)
+    AUTO_POWER_MINING: true, //set to false to disable power mining (recomended until 1-2 RCL8+ rooms)
     MAX_AUTO_POWER_MINING_FLAGS: 2,
     POWER_MINE_LOG: true //displays power mining info in console,
 };
