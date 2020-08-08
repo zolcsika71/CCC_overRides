@@ -334,13 +334,6 @@ viralUtil.fixTerminal = function (roomName = undefined) {
         if (roomName === undefined || room.name === roomName)
             cleanTerminal(room);
     }
-
-
-
-
-
-
-
 };
 
 
