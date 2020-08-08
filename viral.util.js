@@ -280,52 +280,64 @@ viralUtil.terminalBroker = function (roomName = undefined) {
         Game.rooms[roomName].terminalBroker();
 };
 
-viralUtil.fixTerminal = function (roomName) {
-
-    let room = Game.rooms[roomName],
-        data = room.memory.resources,
-        terminalMemory = room.memory.resources.terminal[0],
-        tOrders,
-        terminal = room.terminal;
-
-    console.log(`BEFORE: ${terminalMemory.orders.length}`);
-
-    //global.BB(terminalMemory.orders);
-
-    // TODO is it necessary?
-    // garbage collecting offerRoom terminal orders
-    if (terminalMemory.orders.length > 0) {
-        tOrders = _.filter(terminalMemory.orders, order => {
-
-            console.log(`1., ${order.type} ${_.some(data.offers, offer => {
-                return (offer.type === order.type && offer.amount === order.orderRemaining + (terminal.store[offer.type] || 0));
-            })}`);
-
-            console.log(`2., ${order.type} ${order.type === room.mineralType && room.storage.store[order.type] >= global.MAX_STORAGE_MINERAL}`);
-
-            console.log(`3., ${order.type} ${order.type.length === 1 && order.type !== room.mineralType && order.type !== RESOURCE_ENERGY && room.storage.store[order.type] >= global.MAX_STORAGE_NOT_ROOM_MINERAL}`);
-
-            console.log(`4., ${order.type} ${global.SELL_COMPOUND[order.type] && global.SELL_COMPOUND[order.type].sell
-            && (global.SELL_COMPOUND[order.type].rooms.length === 0 || _.some(global.SELL_COMPOUND[mineral], {'rooms': room.name}))}`);
+viralUtil.fixTerminal = function (roomName = undefined) {
 
 
-            return (order.orderRemaining > 0 || order.storeAmount > 0)
-                && (_.some(data.offers, offer => {
-                        return (offer.type === order.type && offer.amount === order.orderRemaining + (terminal.store[offer.type] || 0));
-                    })
-                    || (order.type === room.mineralType && room.storage.store[order.type] >= global.MAX_STORAGE_MINERAL)
-                    || (order.type.length === 1 && order.type !== room.mineralType && order.type !== RESOURCE_ENERGY && room.storage.store[order.type] >= global.MAX_STORAGE_NOT_ROOM_MINERAL)
-                    || (global.SELL_COMPOUND[order.type] && global.SELL_COMPOUND[order.type].sell
-                        && (global.SELL_COMPOUND[order.type].rooms.length === 0 || _.some(global.SELL_COMPOUND[mineral], {'rooms': room.name})))
-                );
-        });
+    let myRooms = _.filter(Game.rooms, {'my': true});
+
+    let cleanTerminal = (room) => {
+        let data = room.memory.resources,
+            terminalMemory = room.memory.resources.terminal[0],
+            tOrders,
+            terminal = room.terminal;
+
+        console.log(`BEFORE: ${room.name} ${terminalMemory.orders.length}`);
+
+        //global.BB(terminalMemory.orders);
+
+        // TODO is it necessary?
+        // garbage collecting offerRoom terminal orders
+        if (terminalMemory.orders.length > 0) {
+            tOrders = _.filter(terminalMemory.orders, order => {
+
+                console.log(`1., ${room.name} ${order.type} ${_.some(data.offers, offer => {
+                    return (offer.type === order.type && offer.amount === order.orderRemaining + (terminal.store[offer.type] || 0));
+                })}`);
+
+                console.log(`2., ${room.name} ${order.type} ${order.type === room.mineralType && room.storage.store[order.type] >= global.MAX_STORAGE_MINERAL}`);
+
+                console.log(`3., ${room.name} ${order.type} ${order.type.length === 1 && order.type !== room.mineralType && order.type !== RESOURCE_ENERGY && room.storage.store[order.type] >= global.MAX_STORAGE_NOT_ROOM_MINERAL}`);
+
+                console.log(`4., ${room.name} ${order.type} ${global.SELL_COMPOUND[order.type] && global.SELL_COMPOUND[order.type].sell
+                && (global.SELL_COMPOUND[order.type].rooms.length === 0 || _.some(global.SELL_COMPOUND[mineral], {'rooms': room.name}))}`);
+
+
+                return (order.orderRemaining > 0 || order.storeAmount > 0)
+                    && (_.some(data.offers, offer => {
+                            return (offer.type === order.type && offer.amount === order.orderRemaining + (terminal.store[offer.type] || 0));
+                        })
+                        || (order.type === room.mineralType && room.storage.store[order.type] >= global.MAX_STORAGE_MINERAL)
+                        || (order.type.length === 1 && order.type !== room.mineralType && order.type !== RESOURCE_ENERGY && room.storage.store[order.type] >= global.MAX_STORAGE_NOT_ROOM_MINERAL)
+                        || (global.SELL_COMPOUND[order.type] && global.SELL_COMPOUND[order.type].sell
+                            && (global.SELL_COMPOUND[order.type].rooms.length === 0 || _.some(global.SELL_COMPOUND[mineral], {'rooms': room.name})))
+                    );
+            });
+        }
+
+        if (tOrders)
+            console.log(`AFTER: ${room.name} ${tOrders.length}`);
+
+        //global.BB(terminalMemory.orders);
+    }
+
+    for (let room of myRooms) {
+        if (roomName === undefined || room.name === roomName)
+            cleanTerminal(room);
     }
 
 
 
-    console.log(`AFTER: ${tOrders.length}`);
 
-    //global.BB(terminalMemory.orders);
 
 
 

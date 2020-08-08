@@ -236,8 +236,8 @@ let mod = {
     REPORT_MAX_LENGTH: 500,
     REPORTS_PER_LOOP: 18,
     SEND_STATISTIC_REPORTS: true, // Set to true to receive room statistics per mail, otherwise set to false.
-    ROAD_CONSTRUCTION_ENABLE: false, // Set to False to disable automatic road construction, or to a number to enable for owned rooms reaching that RC Level. WARNING: HIGH MEMORY USAGE
-    ROAD_CONSTRUCTION_FORCED_ROOMS: {'shard0': []}, //Add room names to force automatic road construction regardless of ROAD_CONSTRUCTION_ENABLE e.g. {'shard0':['W0N0','W1N0'],'shard1':['W0N0', 'W1N0']}.
+    ROAD_CONSTRUCTION_ENABLE: true, // Set to False to disable automatic road construction, or to a number to enable for owned rooms reaching that RC Level. WARNING: HIGH MEMORY USAGE
+    ROAD_CONSTRUCTION_FORCED_ROOMS: {'shard1': []}, //Add room names to force automatic road construction regardless of ROAD_CONSTRUCTION_ENABLE e.g. {'shard0':['W0N0','W1N0'],'shard1':['W0N0', 'W1N0']}.
     ROAD_CONSTRUCTION_INTERVAL: 500,
     ROAD_CONSTRUCTION_MIN_DEVIATION: 1.2,
     ROAD_CONSTRUCTION_ABS_MIN: 3,
@@ -255,7 +255,7 @@ let mod = {
             }
         },
         */
-    ROUTE_ROOM_COST: { 'shard0': {}}, // custom room routing cost: e.g. `{'shard0':{ 'W0N0':5, 'W4N4': 11 },'shard1':...}`. Affects bestSpawnRoomFor, Creep.Setup calculations, and travel cost predictions. Please call 'delete Memory.routeRange;' whenever you change this property.
+    ROUTE_ROOM_COST: { 'shard1': {}}, // custom room routing cost: e.g. `{'shard0':{ 'W0N0':5, 'W4N4': 11 },'shard1':...}`. Affects bestSpawnRoomFor, Creep.Setup calculations, and travel cost predictions. Please call 'delete Memory.routeRange;' whenever you change this property.
     TRAVELLING_BORDER_RANGE: 22, // room arrival distance for travelling and routes
     NOTIFICATE_INVADER: false, // Also log common 'Invader' hostiles
     NOTIFICATE_INTRUDER: true, // Log any hostiles in your rooms
