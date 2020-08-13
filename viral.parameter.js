@@ -380,55 +380,55 @@ let mod = {
             rooms: []
         },
         XUH2O: {        // +300% attack effectiveness
-            make: true,
+            make: false,
             roomThreshold: 15000,
             amount: 3000,
             rooms: []
         },
         XKHO2: {        // +300% rangedAttack and rangedMassAttack effectiveness
-            make: true,
+            make: false,
             roomThreshold: 15000,
             amount: 3000,
             rooms: []
         },
         XLHO2: {        // +300% heal and rangedHeal effectiveness
-            make: true,
+            make: false,
             roomThreshold: 15000,
             amount: 3000,
             rooms: []
         },
         XGHO2: {        // -70% damage taken
-            make: true,
+            make: false,
             roomThreshold: 15000,
             amount: 3000,
             rooms: []
         },
         XZH2O: {        // +300% dismantle effectiveness
-            make: true,
+            make: false,
             roomThreshold: 15000,
             amount: 3000,
             rooms: []
         },
         XKH2O: {        // +150 capacity
-            make: true,
+            make: false,
             roomThreshold: 15000,
             amount: 3000,
             rooms: []
         },
         XZHO2: {        // +300% fatigue decrease speed
-            make: true,
+            make: false,
             roomThreshold: 15000,
             amount: 3000,
             rooms: []
         },
         XUHO2: {        // +600% harvest effectiveness
-            make: true,
+            make: false,
             roomThreshold: 9000,
             amount: 3000,
             rooms: []
         },
         XLH2O: {        // +100% repair and build effectiveness without increasing the energy cost
-            make: true,
+            make: false,
             roomThreshold: 9000,
             amount: 3000,
             rooms: []
