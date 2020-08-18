@@ -78,7 +78,7 @@ let mod = {
         5: 10000,
         6: 25000,
         7: 50000,
-        8: 300000
+        8: 100000
     },
     MIN_STORAGE_ENERGY: { // prefer storing energy until reached
         1: 1000,
@@ -88,7 +88,7 @@ let mod = {
         5: 5000,
         6: 10000,
         7: 25000,
-        8: 150000
+        8: 100000
     },
     MAX_STORAGE_MINERAL: 200000, // keep a max of minerals in store
     MAX_STORAGE_NOT_ROOM_MINERAL: 20000, // amount of not room minerals
@@ -236,7 +236,7 @@ let mod = {
     REPORT_MAX_LENGTH: 500,
     REPORTS_PER_LOOP: 18,
     SEND_STATISTIC_REPORTS: true, // Set to true to receive room statistics per mail, otherwise set to false.
-    ROAD_CONSTRUCTION_ENABLE: true, // Set to False to disable automatic road construction, or to a number to enable for owned rooms reaching that RC Level. WARNING: HIGH MEMORY USAGE
+    ROAD_CONSTRUCTION_ENABLE: false, // Set to False to disable automatic road construction, or to a number to enable for owned rooms reaching that RC Level. WARNING: HIGH MEMORY USAGE
     ROAD_CONSTRUCTION_FORCED_ROOMS: {'shard1': []}, //Add room names to force automatic road construction regardless of ROAD_CONSTRUCTION_ENABLE e.g. {'shard0':['W0N0','W1N0'],'shard1':['W0N0', 'W1N0']}.
     ROAD_CONSTRUCTION_INTERVAL: 2000,
     ROAD_CONSTRUCTION_MIN_DEVIATION: 1.2,
@@ -552,7 +552,7 @@ let mod = {
 
     // internalViral.parameter
     FILL_NUKER: true,
-    AUTO_POWER_MINING: true, //set to false to disable power mining (recomended until 1-2 RCL8+ rooms)
+    AUTO_POWER_MINING: false, //set to false to disable power mining (recomended until 1-2 RCL8+ rooms)
     MAX_AUTO_POWER_MINING_FLAGS: 2,
     POWER_MINE_LOG: true //displays power mining info in console,
 };
