@@ -78,7 +78,7 @@ let mod = {
         5: 10000,
         6: 25000,
         7: 50000,
-        8: 100000
+        8: 150000
     },
     MIN_STORAGE_ENERGY: { // prefer storing energy until reached
         1: 1000,
