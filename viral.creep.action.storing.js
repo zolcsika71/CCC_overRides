@@ -4,12 +4,12 @@ action.isValidAction = function(creep) {
     return creep.room.storage && creep.room.storage.isActive() && creep.sum > 0;
 };
 action.isValidTarget = function(target){
-    return ((target) && (target.store) && target.active && target.sum < target.storeCapacity);
+    return ((target) && (target.store) && target.active && target.sum < target.store.getCapacity());
 };
 action.isAddableTarget = function(target, creep){
     return ( target.my &&
         (!target.targetOf || target.targetOf.length < this.maxPerTarget) &&
-        target.sum + creep.carry[RESOURCE_ENERGY] < target.storeCapacity);
+        target.sum + creep.carry[RESOURCE_ENERGY] < target.store.getCapacity());
 };
 action.isValidMineralToTerminal = function (room, mineral) {
 
@@ -22,20 +22,20 @@ action.isValidMineralToTerminal = function (room, mineral) {
 
         if (mineral === room.mineralType)
             return room.storage.store[mineral]
-                && (room.storage.sum >= room.storage.storeCapacity * 0.9 || room.storage.store[mineral] > global.MAX_STORAGE_MINERAL)
+                && (room.storage.sum >= room.storage.store.getCapacity() * 0.9 || room.storage.store[mineral] > global.MAX_STORAGE_MINERAL)
                 && room.terminal.sum - room.terminal.store.energy < global.MAX_STORAGE_TERMINAL
-                && room.terminal.sum - room.terminal.store.energy + Math.max(room.terminal.store.energy, global.TERMINAL_ENERGY) < room.terminal.storeCapacity;
+                && room.terminal.sum - room.terminal.store.energy + Math.max(room.terminal.store.energy, global.TERMINAL_ENERGY) < room.terminal.store.getCapacity();
         else
             return room.storage.store[mineral] &&
-                (room.storage.sum >= room.storage.storeCapacity * 0.9 || room.storage.store[mineral] > global.MAX_STORAGE_NOT_ROOM_MINERAL)
+                (room.storage.sum >= room.storage.store.getCapacity() * 0.9 || room.storage.store[mineral] > global.MAX_STORAGE_NOT_ROOM_MINERAL)
                 && room.terminal.sum - room.terminal.store.energy < global.MAX_STORAGE_TERMINAL
-                && room.terminal.sum - room.terminal.store.energy + Math.max(room.terminal.store.energy, global.TERMINAL_ENERGY) < room.terminal.storeCapacity;
+                && room.terminal.sum - room.terminal.store.energy + Math.max(room.terminal.store.energy, global.TERMINAL_ENERGY) < room.terminal.store.getCapacity();
 
     } else if (global.SELL_COMPOUND[mineral] && global.SELL_COMPOUND[mineral].sell)
         return room.storage.store[mineral]
             && room.storage.store[mineral] > global.SELL_COMPOUND[mineral].maxStorage
             && room.terminal.sum - room.terminal.store.energy < global.MAX_STORAGE_TERMINAL
-            && room.terminal.sum - room.terminal.store.energy + Math.max(room.terminal.store.energy, global.TERMINAL_ENERGY) < room.terminal.storeCapacity;
+            && room.terminal.sum - room.terminal.store.energy + Math.max(room.terminal.store.energy, global.TERMINAL_ENERGY) < room.terminal.store.getCapacity();
     else
         return false;
 
@@ -62,7 +62,7 @@ action.newTarget = function(creep){
         creep.carry.energy > 0 &&
         creep.room.storage.charge > 0.5 &&
         creep.room.terminal.store.energy < TERMINAL_ENERGY*0.95 &&
-        creep.room.terminal.sum  < creep.room.terminal.storeCapacity);
+        creep.room.terminal.sum  < creep.room.terminal.store.getCapacity());
 
 
 

@@ -214,7 +214,7 @@ mod.extend = function () {
                 this.placeOrder(this.terminal.id, offer.type, amt);
             }
             if (!targetRoom.terminal) continue;
-            let space = targetRoom.terminal.storeCapacity - targetRoom.terminal.sum;
+            let space = targetRoom.terminal.store.getCapacity() - targetRoom.terminal.sum;
             amount = Math.min(amount, space, store);
 
             let cost = Game.market.calcTransactionCost(amount, this.name, targetRoom.name);
@@ -508,18 +508,18 @@ mod.extend = function () {
         let that = this;
         let order;
         let transacting = false;
-        let terminalFull = (this.terminal.sum / this.terminal.storeCapacity) > 0.9;
-        let storageFull = (this.storage.sum / this.storage.storeCapacity) > 0.9;
+        let terminalFull = (this.terminal.sum / this.terminal.store.getCapacity()) > 0.9;
+        let storageFull = (this.storage.sum / this.storage.store.getCapacity()) > 0.9;
 
-        //global.logSystem(this.name, `${Util.chargeScale(this.storage.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT, MIN_STORAGE_ENERGY[this.controller.level], MAX_STORAGE_ENERGY[this.controller.level])}`);
+        global.logSystem(this.name, `${Util.chargeScale(this.storage.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT, MIN_STORAGE_ENERGY[this.controller.level], MAX_STORAGE_ENERGY[this.controller.level])}`);
 
         if (this.controller.level === 8 && Util.chargeScale(this.storage.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT, MIN_STORAGE_ENERGY[this.controller.level], MAX_STORAGE_ENERGY[this.controller.level]) > 1
             && (this.terminal.store[this.mineralType] || 0) < 150000
             && this.terminal.store.energy > (ENERGY_BALANCE_TRANSFER_AMOUNT * 1.1)) {
             let requiresEnergy = room => (
                 room.my && room.storage && room.terminal &&
-                room.terminal.sum < room.terminal.storeCapacity - ENERGY_BALANCE_TRANSFER_AMOUNT &&
-                room.storage.sum < room.storage.storeCapacity * TARGET_STORAGE_SUM_RATIO &&
+                room.terminal.sum < room.terminal.store.getCapacity() - ENERGY_BALANCE_TRANSFER_AMOUNT &&
+                room.storage.sum < room.storage.store.getCapacity() * TARGET_STORAGE_SUM_RATIO &&
                 !room._isReceivingEnergy &&
                 room.storage.store[RESOURCE_ENERGY] < MAX_STORAGE_ENERGY[room.controller.level]
             );
@@ -528,7 +528,8 @@ mod.extend = function () {
             if (targetRoom instanceof Room && Game.market.calcTransactionCost(ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name) < (this.terminal.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT)) {
                 targetRoom._isReceivingEnergy = true;
                 let response = this.terminal.send('energy', ENERGY_BALANCE_TRANSFER_AMOUNT, targetRoom.name, 'have fun');
-                if (global.DEBUG) logSystem(that.name, `Transferring ${Util.formatNumber(ENERGY_BALANCE_TRANSFER_AMOUNT)} energy to ${targetRoom.name}: ${translateErrorCode(response)}`);
+                if (global.DEBUG)
+                    logSystem(that.name, `Transferring ${Util.formatNumber(ENERGY_BALANCE_TRANSFER_AMOUNT)} energy to ${targetRoom.name}: ${translateErrorCode(response)}`);
                 transacting = response === OK;
             }
         }

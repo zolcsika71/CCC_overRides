@@ -184,8 +184,10 @@ viralUtil.storageFull = function () {
 
         let sumStorage = _.sum(room.storage.store);
 
-        if (sumStorage >= STORAGE_CAPACITY * 0.9)
+        if (sumStorage >= STORAGE_CAPACITY * 0.9) {
             console.log(`${room.name} ${sumStorage / STORAGE_CAPACITY}`);
+            room.terminalBroker();
+        }
 
     }
 
@@ -201,8 +203,10 @@ viralUtil.terminalFull = function () {
 
         let sumTerminal = _.sum(room.terminal.store);
 
-        if (sumTerminal >= room.terminal.store.getCapacity() * 0.9)
+        if (sumTerminal >= room.terminal.store.getCapacity() * 0.9) {
             console.log(`${room.name} ${sumTerminal / room.terminal.store.getCapacity()}`);
+        }
+
 
     }
 

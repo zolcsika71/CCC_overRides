@@ -41,7 +41,7 @@ setup.maxCount = function (room) {
     if (upgraderEnergy === 0) return 0;
     if (room.storage && room.storage.active) {
 
-        let storageFull = (room.storage.sum / room.storage.storeCapacity) > 0.9,
+        let storageFull = (room.storage.sum / room.storage.store.getCapacity()) > 0.9,
             energySurplus = room.controller.level < 8 && room.storage.store.energy > global.MAX_STORAGE_ENERGY[8],
             ratio = 350000;
 
