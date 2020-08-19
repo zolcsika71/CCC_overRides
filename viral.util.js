@@ -280,6 +280,17 @@ viralUtil.terminalBroker = function (roomName = undefined) {
         Game.rooms[roomName].terminalBroker();
 };
 
+viralUtil.terminalEnergy = () => {
+    let myRooms = _.filter(Game.rooms, {'my': true});
+
+    for(let room of myRooms) {
+        if (room.terminal.store[RESOURCE_ENERGY] < 10000)
+            console.log(room.name);
+    }
+
+
+};
+
 viralUtil.fixTerminal = function (roomName = undefined) {
 
 
@@ -524,6 +535,24 @@ viralUtil.createResources = () => {
     }
 
 };
+
+
+// if second terminal built it deletes, the old id from memory
+viralUtil.terminalRepair = () => {
+
+    let data,
+        myRooms = _.filter(Game.rooms, {'my': true});
+
+    for (let room of myRooms) {
+        if (Memory.rooms[room.name].resources.terminal.length > 1) {
+            console.log(room.name, room.terminal.id);
+            delete Memory.rooms[room.name].resources.terminal;
+            Memory.rooms[room.name].resources.terminal = [{id: room.terminal.id, orders: []}];
+
+        }
+    }
+
+}
 
 
 /*
