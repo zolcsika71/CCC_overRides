@@ -193,6 +193,27 @@ viralUtil.storageFull = function () {
 
 };
 
+// if terminalBroker find a room for transfer
+viralUtil.roomEnergy = () => {
+
+    let myRooms = _.filter(Game.rooms, room => {
+        return room.my && room.storage && room.terminal;
+    });
+
+    for (let room of myRooms) {
+        let requiresEnergy = room => (
+            room.my && room.storage && room.terminal &&
+            room.terminal.sum < room.terminal.store.getCapacity() - ENERGY_BALANCE_TRANSFER_AMOUNT &&
+            room.storage.sum < room.storage.store.getCapacity() * TARGET_STORAGE_SUM_RATIO &&
+            !room._isReceivingEnergy &&
+            room.storage.store[RESOURCE_ENERGY] < MAX_STORAGE_ENERGY[room.controller.level]
+        );
+        console.log(`${room.name} ${requiresEnergy(room)}`);
+    }
+
+
+}
+
 viralUtil.terminalFull = function () {
 
     let myRooms = _.filter(Game.rooms, room => {
