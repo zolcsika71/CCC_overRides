@@ -176,7 +176,7 @@ let mod = {
     TERMINAL_ENERGY: 100000,
     ENERGY_BALANCE_TRANSFER_AMOUNT: 50000,      // amount to transfer when balancing empire energy
     TARGET_STORAGE_SUM_RATIO: 0.8,
-    TERMINAL_BROKER_NO_SELL: false,
+    TERMINAL_BROKER_NO_SELL: false, // for testing terminalBroker
     AUTOMATED_RATIO_COUNT: true, // count average ratios according to the market. Sell and buy happens above/bellow the average
     MARKET_SELL_NOT_RCL8_ROOMS: false, // sell the surplus in rooms under RCL8
     MIN_SELL_RATIO: {

@@ -530,6 +530,8 @@ mod.extend = function () {
             let targetRoom = _.min(_.filter(Game.rooms, requiresEnergy), 'storage.store.energy');
             console.log(`requiresEnergy: ${_.filter(Game.rooms, requiresEnergy)}`);
             console.log(`${targetRoom} is found`);
+            console.log(`room instance: ${targetRoom instanceof Room} && transaction cost: ${Game.market.calcTransactionCost(ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name) < (this.terminal.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT)}`);
+            console.log(`cost: ${Game.market.calcTransactionCost(ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name)} terminal energy remains: ${this.terminal.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT}`);
             if (targetRoom instanceof Room && Game.market.calcTransactionCost(ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name) < (this.terminal.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT)) {
                 targetRoom._isReceivingEnergy = true;
                 let response = this.terminal.send('energy', ENERGY_BALANCE_TRANSFER_AMOUNT, targetRoom.name, 'have fun');
