@@ -554,8 +554,10 @@ mod.extend = function () {
                     if (_.isUndefined(data))
                         return false;
 
+                    global.logSystem(that.name, `not selling mineral: ${!TERMINAL_BROKER_SELL_ENERGY && mineral === 'energy'} mineral: ${mineral}`);
+
                     if (!TERMINAL_BROKER_SELL_ENERGY && mineral === 'energy')
-                        return false;
+                        return true;
 
 
                     let offerMineral = _.some(data.offers, offer => {
