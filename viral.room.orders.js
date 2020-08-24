@@ -513,7 +513,7 @@ mod.extend = function () {
         let terminalFull = (this.terminal.sum / this.terminal.store.getCapacity()) > 0.9;
         let storageFull = (this.storage.sum / this.storage.store.getCapacity()) > 0.9;
 
-        global.logSystem(this.name, `${Util.chargeScale(this.storage.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT, MIN_STORAGE_ENERGY[this.controller.level], MAX_STORAGE_ENERGY[this.controller.level])}`);
+        global.logSystem(this.name, `chargeScale: ${Util.chargeScale(this.storage.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT, MIN_STORAGE_ENERGY[this.controller.level], MAX_STORAGE_ENERGY[this.controller.level])}`);
 
         if (this.controller.level === 8 && Util.chargeScale(this.storage.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT, MIN_STORAGE_ENERGY[this.controller.level], MAX_STORAGE_ENERGY[this.controller.level]) > 1
             && (this.terminal.store[this.mineralType] || 0) < 150000
@@ -531,7 +531,7 @@ mod.extend = function () {
             console.log(`requiresEnergy: ${_.filter(Game.rooms, requiresEnergy)}`);
             console.log(`${targetRoom} is found`);
             console.log(`room instance: ${targetRoom instanceof Room} && transaction cost: ${Game.market.calcTransactionCost(ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name) < (this.terminal.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT)}`);
-            console.log(`cost: ${Game.market.calcTransactionCost(ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name)} terminal energy remains: ${this.terminal.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT}`);
+            console.log(`cost: ${Game.market.calcTransactionCost(ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name)} < terminal energy remains: ${this.terminal.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT}`);
             if (targetRoom instanceof Room && Game.market.calcTransactionCost(ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name) < (this.terminal.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT)) {
                 targetRoom._isReceivingEnergy = true;
                 let response = this.terminal.send('energy', ENERGY_BALANCE_TRANSFER_AMOUNT, targetRoom.name, 'have fun');
@@ -541,8 +541,7 @@ mod.extend = function () {
             }
         }
 
-       if (TERMINAL_BROKER_NO_SELL)
-           return;
+
 
         if (this.controller.level === 8 || global.MARKET_SELL_NOT_RCL8_ROOMS || terminalFull || storageFull) {
 
@@ -554,6 +553,10 @@ mod.extend = function () {
 
                     if (_.isUndefined(data))
                         return false;
+
+                    if (!TERMINAL_BROKER_SELL_ENERGY && mineral === 'energy')
+                        return false;
+
 
                     let offerMineral = _.some(data.offers, offer => {
                         return offer.type === mineral && offer.amount > 0;
@@ -728,7 +731,8 @@ mod.extend = function () {
 
                      */
 
-                } else if (numberOfTransactions.count <= 10 && !transacting && (
+                }
+                else if (numberOfTransactions.count <= 10 && !transacting && (
                     (mineral === this.memory.mineralType && this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)
                     || (mineral === RESOURCE_ENERGY && this.storage.store[RESOURCE_ENERGY] >= global.MAX_STORAGE_ENERGY[8] * 1.2 && this.terminal.store[RESOURCE_ENERGY] >= global.TERMINAL_ENERGY * 0.8)
                     || (mineral !== this.memory.mineralType && mineral !== RESOURCE_ENERGY && mineral !== 'G' && this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)

@@ -299,8 +299,10 @@ viralUtil.terminalBroker = function (roomName = undefined) {
 
     if (_.isUndefined(roomName)) {
         let myRooms = _.filter(Game.rooms, {'my': true});
-        for (let room of myRooms)
+        for (let room of myRooms) {
+            console.log(`util at ${room.name}`);
             room.terminalBroker();
+        }
     } else
         Game.rooms[roomName].terminalBroker();
 };
