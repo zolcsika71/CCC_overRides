@@ -78,7 +78,7 @@ let mod = {
         5: 10000,
         6: 25000,
         7: 50000,
-        8: 150000
+        8: 200000
     },
     MIN_STORAGE_ENERGY: { // prefer storing energy until reached
         1: 1000,
@@ -176,7 +176,7 @@ let mod = {
     TERMINAL_ENERGY: 100000,
     ENERGY_BALANCE_TRANSFER_AMOUNT: 50000,      // amount to transfer when balancing empire energy
     TARGET_STORAGE_SUM_RATIO: 0.8,
-    TERMINAL_BROKER_SELL_ENERGY: false, // for testing terminalBroker
+    TERMINAL_BROKER_SELL_ENERGY: true, // false for testing terminalBroker or preserve energy
     AUTOMATED_RATIO_COUNT: true, // count average ratios according to the market. Sell and buy happens above/bellow the average
     MARKET_SELL_NOT_RCL8_ROOMS: false, // sell the surplus in rooms under RCL8
     MIN_SELL_RATIO: {
@@ -354,7 +354,7 @@ let mod = {
     // auto flower register labs
     AUTO_REGISTER_LABS: true, // it needs MAKE_COMPOUNDS: true
     // make boostProduction on/off
-    MAKE_COMPOUNDS: true,
+    MAKE_COMPOUNDS: false,
     // checks the rooms in this interval to make compounds
     MAKE_COMPOUNDS_INTERVAL: 5,
     MAKE_REACTIONS_WITH_3LABS: false,
