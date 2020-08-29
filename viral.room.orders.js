@@ -503,7 +503,7 @@ mod.extend = function () {
         let numberOfTransactions = Memory.numberOfTransactions;
 
         if (numberOfTransactions.time !== Game.time) {
-            numberOfTransactions.count = 1;
+            numberOfTransactions.count = 0;
             numberOfTransactions.time = Game.time;
         }
 
@@ -513,12 +513,12 @@ mod.extend = function () {
         let terminalFull = (this.terminal.sum / this.terminal.store.getCapacity()) > 0.9;
         let storageFull = (this.storage.sum / this.storage.store.getCapacity()) > 0.9;
 
-        global.logSystem(this.name, `chargeScale: ${Util.chargeScale(this.storage.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT, MIN_STORAGE_ENERGY[this.controller.level], MAX_STORAGE_ENERGY[this.controller.level])}`);
+        //global.logSystem(this.name, `chargeScale: ${Util.chargeScale(this.storage.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT, MIN_STORAGE_ENERGY[this.controller.level], MAX_STORAGE_ENERGY[this.controller.level])}`);
 
         if (this.controller.level === 8 && Util.chargeScale(this.storage.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT, MIN_STORAGE_ENERGY[this.controller.level], MAX_STORAGE_ENERGY[this.controller.level]) > 1
             && (this.terminal.store[this.mineralType] || 0) < 150000
             && this.terminal.store.energy > (ENERGY_BALANCE_TRANSFER_AMOUNT * 1.1)) {
-            console.log(`${this.name} can transfer energy`);
+            //console.log(`${this.name} can transfer energy`);
             let requiresEnergy = room => (
                 room.my && room.storage && room.terminal &&
                 room.terminal.sum < room.terminal.store.getCapacity() - ENERGY_BALANCE_TRANSFER_AMOUNT &&
@@ -528,10 +528,13 @@ mod.extend = function () {
             );
 
             let targetRoom = _.min(_.filter(Game.rooms, requiresEnergy), 'storage.store.energy');
+            /*
             console.log(`requiresEnergy: ${_.filter(Game.rooms, requiresEnergy)}`);
             console.log(`${targetRoom} is found`);
             console.log(`room instance: ${targetRoom instanceof Room} && transaction cost: ${Game.market.calcTransactionCost(ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name) < (this.terminal.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT)}`);
             console.log(`cost: ${Game.market.calcTransactionCost(ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name)} < terminal energy remains: ${this.terminal.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT}`);
+
+             */
             if (targetRoom instanceof Room && Game.market.calcTransactionCost(ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name) < (this.terminal.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT)) {
                 targetRoom._isReceivingEnergy = true;
                 let response = this.terminal.send('energy', ENERGY_BALANCE_TRANSFER_AMOUNT, targetRoom.name, 'have fun');
@@ -554,9 +557,12 @@ mod.extend = function () {
                     if (_.isUndefined(data))
                         return false;
 
-                    global.logSystem(that.name, `not selling mineral: ${!TERMINAL_BROKER_SELL_ENERGY && mineral === 'energy'} mineral: ${mineral}`);
+                    //global.logSystem(that.name, `not selling mineral: ${!TERMINAL_BROKER_SELL_ENERGY && mineral === 'energy'} mineral: ${mineral}`);
 
                     if (!TERMINAL_BROKER_SELL_ENERGY && mineral === 'energy')
+                        return true;
+
+                    if (mineral === RESOURCE_POWER)
                         return true;
 
 
@@ -647,6 +653,8 @@ mod.extend = function () {
                         sellAmount = amount(mineral),
                         terminalOrderCompleted = global.sumCompoundType(data.terminal[0].orders, 'orderRemaining')[mineral] <= 0;
 
+
+
                     if (terminalOrderCompleted && sellAmount > 0) {
 
                         let minPrice,
@@ -655,6 +663,8 @@ mod.extend = function () {
                             buyOrder,
                             returnCode,
                             returnValue;
+
+                        global.logSystem(that.name, `mineral ${global.SELL_COMPOUND[mineral]}`);
 
                         if (global.SELL_COMPOUND[mineral].urgent) {
 
@@ -704,12 +714,16 @@ mod.extend = function () {
 
             for (const mineral in this.terminal.store) {
 
-                if (mineral === RESOURCE_POWER || cloakedMinerals(mineral))
+                global.logSystem(that.name, `mineral: ${mineral} cloaked: ${cloakedMinerals(mineral)}`);
+                global.logSystem(that.name, `transaction count: ${numberOfTransactions.count},  NOT transacting: ${!transacting}`);
+                global.logSystem(that.name, `compound sell: ${global.SELL_COMPOUND[mineral] && global.SELL_COMPOUND[mineral].sell && this.terminal.store[mineral] >= global.MIN_COMPOUND_SELL_AMOUNT && numberOfTransactions.count <= 10 && !transacting}`);
+
+                if (cloakedMinerals(mineral))
                     continue;
 
-                if (global.SELL_COMPOUND[mineral] && global.SELL_COMPOUND[mineral].sell) {
+                /*if (global.SELL_COMPOUND[mineral] && global.SELL_COMPOUND[mineral].sell) {
 
-                    /*
+
 
                     global.logSystem(this.name, `trying to make sell order for ${mineral}`);
 
@@ -731,15 +745,18 @@ mod.extend = function () {
                     }
 
 
-                     */
+
 
                 }
-                else if (numberOfTransactions.count <= 10 && !transacting && (
+              */
+                if (numberOfTransactions.count < 10 && !transacting && (
                     (mineral === this.memory.mineralType && this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)
                     || (mineral === RESOURCE_ENERGY && this.storage.store[RESOURCE_ENERGY] >= global.MAX_STORAGE_ENERGY[8] * 1.2 && this.terminal.store[RESOURCE_ENERGY] >= global.TERMINAL_ENERGY * 0.8)
                     || (mineral !== this.memory.mineralType && mineral !== RESOURCE_ENERGY && mineral !== 'G' && this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)
-                    || (this.nuked && global.SELL_COMPOUND[mineral] && this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)
+                    || (global.SELL_COMPOUND[mineral] && global.SELL_COMPOUND[mineral].sell && this.terminal.store[mineral] >= global.MIN_COMPOUND_SELL_AMOUNT)
                 )) {
+
+                    global.logSystem(that.name, `mineral selling ongoing: ${mineral}`);
 
                     let orders = _.filter(global._buyOrders(mineral), o => {
 
@@ -803,7 +820,7 @@ mod.extend = function () {
                             global.logSystem(this.name, `id: ${order.id} ratio: ${global.roundUp(order.ratio, 4)} price: ${order.price} credit: ${global.roundUp(order.credits / order.transactionAmount, 4)}`);
                         }
                         let result = Game.market.deal(order.id, order.transactionAmount, this.name);
-                        if (global.DEBUG || SELL_NOTIFICATION) logSystem(this.name, `Selling ${order.transactionAmount} ${mineral} for ${global.roundUp(order.credits)} (${order.price} ¢/${mineral}, ${order.transactionCost} e): ${translateErrorCode(result)}`);
+                        if (global.DEBUG || SELL_NOTIFICATION) logSystem(this.name, `Selling ${order.transactionAmount} ${mineral} for ${global.roundUp(order.credits)} (${order.price} ¢/${mineral}, ${order.transactionCost} report: ${translateErrorCode(result)}`);
                         if (SELL_NOTIFICATION) Game.notify(`<h2>Room ${this.name} executed an order!</h2><br/>Result: ${translateErrorCode(result)}<br/>Details:<br/>${JSON.stringify(order).replace(',', ',<br/>')}`);
                         if (result === OK && Memory.numberOfTransactions.time === Game.time)
                             numberOfTransactions.count++;
