@@ -515,7 +515,10 @@ mod.extend = function () {
 
         //global.logSystem(this.name, `chargeScale: ${Util.chargeScale(this.storage.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT, MIN_STORAGE_ENERGY[this.controller.level], MAX_STORAGE_ENERGY[this.controller.level])}`);
 
-        if (this.controller.level === 8 && Util.chargeScale(this.storage.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT, MIN_STORAGE_ENERGY[this.controller.level], MAX_STORAGE_ENERGY[this.controller.level]) > 1
+        if (this.controller.level === 8
+            && Util.chargeScale(this.storage.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT,
+                MIN_STORAGE_ENERGY[this.controller.level],
+                MAX_STORAGE_ENERGY[this.controller.level]) > 1
             && (this.terminal.store[this.mineralType] || 0) < 150000
             && this.terminal.store.energy > (ENERGY_BALANCE_TRANSFER_AMOUNT * 1.1)) {
             //console.log(`${this.name} can transfer energy`);

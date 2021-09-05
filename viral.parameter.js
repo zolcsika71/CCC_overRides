@@ -91,8 +91,8 @@ let mod = {
         8: 100000
     },
     MAX_STORAGE_MINERAL: 200000, // keep a max of minerals in store
-    MAX_STORAGE_NOT_ROOM_MINERAL: 20000, // amount of not room minerals
-    MAX_STORAGE_TERMINAL: 230000, // maximum amount of all minerals in terminal
+    MAX_STORAGE_NOT_ROOM_MINERAL: 50000, // amount of not room minerals
+    MAX_STORAGE_TERMINAL: 150000, // maximum amount of all minerals in terminal
     SELL_COMPOUND: {
         XGH2O: {    // +100% upgradeController effectiveness without increasing the energy cost
             sell: true, // sell or not
@@ -552,8 +552,9 @@ let mod = {
     },
 
     // internalViral.parameter
+    CLEAN_ROOM_MEMORY: true,
     FILL_NUKER: true,
-    AUTO_POWER_MINING: false, //set to false to disable power mining (recomended until 1-2 RCL8+ rooms)
+    AUTO_POWER_MINING: true, //set to false to disable power mining (recomended until 1-2 RCL8+ rooms)
     MAX_AUTO_POWER_MINING_FLAGS: 2,
     POWER_MINE_LOG: true //displays power mining info in console,
 };
