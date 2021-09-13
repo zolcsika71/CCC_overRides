@@ -20,22 +20,26 @@ action.isValidMineralToTerminal = function (room, mineral) {
 
     if (!mineralIsCompound) {
 
+
         if (mineral === room.mineralType)
+
             return room.storage.store[mineral]
-                && (room.storage.sum >= room.storage.store.getCapacity() * 0.9 || room.storage.store[mineral] > global.MAX_STORAGE_MINERAL)
+                && (room.storage.sum >= room.storage.store.getCapacity() * TARGET_STORAGE_SUM_RATIO || room.storage.store[mineral] > global.MAX_STORAGE_MINERAL)
                 && room.terminal.sum - room.terminal.store.energy < global.MAX_STORAGE_TERMINAL
-                && room.terminal.sum - room.terminal.store.energy + Math.max(room.terminal.store.energy, global.TERMINAL_ENERGY) < room.terminal.store.getCapacity();
+                && room.terminal.sum - room.terminal.store.energy
+                + Math.max(room.terminal.store.energy, global.TERMINAL_ENERGY) < room.terminal.store.getCapacity() * TARGET_STORAGE_SUM_RATIO;
         else
-            return room.storage.store[mineral] &&
-                (room.storage.sum >= room.storage.store.getCapacity() * 0.9 || room.storage.store[mineral] > global.MAX_STORAGE_NOT_ROOM_MINERAL)
+            return room.storage.store[mineral]
+                && (room.storage.sum >= room.storage.store.getCapacity() * TARGET_STORAGE_SUM_RATIO || room.storage.store[mineral] > global.MAX_STORAGE_NOT_ROOM_MINERAL)
                 && room.terminal.sum - room.terminal.store.energy < global.MAX_STORAGE_TERMINAL
-                && room.terminal.sum - room.terminal.store.energy + Math.max(room.terminal.store.energy, global.TERMINAL_ENERGY) < room.terminal.store.getCapacity();
+                && room.terminal.sum - room.terminal.store.energy
+                + Math.max(room.terminal.store.energy, global.TERMINAL_ENERGY) < room.terminal.store.getCapacity * TARGET_STORAGE_SUM_RATIO;
 
     } else if (global.SELL_COMPOUND[mineral] && global.SELL_COMPOUND[mineral].sell)
         return room.storage.store[mineral]
             && room.storage.store[mineral] > global.SELL_COMPOUND[mineral].maxStorage
             && room.terminal.sum - room.terminal.store.energy < global.MAX_STORAGE_TERMINAL
-            && room.terminal.sum - room.terminal.store.energy + Math.max(room.terminal.store.energy, global.TERMINAL_ENERGY) < room.terminal.store.getCapacity();
+            && room.terminal.sum - room.terminal.store.energy + Math.max(room.terminal.store.energy, global.TERMINAL_ENERGY) < room.terminal.store.getCapacity() * TARGET_STORAGE_SUM_RATIO;
     else
         return false;
 
