@@ -43,7 +43,6 @@ viralUtil.deleteStructures = function (roomName, type) {
 viralUtil.deleteConstructionSites = function (roomName) {
 	if (_.isUndefined(roomName)) {
 		console.log(`delete all constructionSites`);
-		let myRooms = _.filter(Game.rooms, {'my': true});
 		for (const room of myRooms) {
 			let constructionSites = room.myConstructionSites;
 			console.log(`room: ${room.name} sites: ${constructionSites}`);
@@ -76,8 +75,7 @@ viralUtil.data = function (creepName) {
 
 viralUtil.resetBoostProduction = function (roomName) {
 
-	let data,
-		myRooms = _.filter(Game.rooms, {'my': true});
+	let data;
 
 	for (let room of myRooms) {
 
@@ -117,33 +115,26 @@ viralUtil.resetBoostProduction = function (roomName) {
 };
 
 viralUtil.cleanTrace = function () {
-
-	let myRooms = _.filter(Game.rooms, {'my': true});
 	for (let room of myRooms)
 		delete room.memory.roadConstructionTrace;
 
 };
 viralUtil.roomStored = function (mineral) {
 
-	let myRooms = _.filter(Game.rooms, room => {
-			return room.my && room.storage && room.terminal;
-		}),
-		roomStored = 0;
+	let roomStored = 0;
 
-	for (let room of myRooms) {
-		roomStored += (room.resourcesStorage[mineral] || 0) + (room.resourcesTerminal[mineral] || 0);
+	for (let room of acceptedRooms) {
+		roomStored += (room.storage.store[mineral] || 0) + (room.terminal.store[mineral] || 0);
 	}
 	return roomStored;
 };
 
 viralUtil.resourcesAll = function (mineral) {
 
-	let myRooms = _.filter(Game.rooms, room => {
-			return room.my && room.storage && room.terminal;
-		}),
-		roomStored = 0;
 
-	for (let room of myRooms) {
+	let roomStored = 0;
+
+	for (let room of acceptedRooms) {
 		let resources = room.resourcesAll[mineral] || 0;
 		if (resources >= global.MIN_OFFER_AMOUNT)
 			roomStored += resources;
@@ -183,11 +174,7 @@ viralUtil.launchNuke = function (roomA, roomB, x, y) {
 };
 
 viralUtil.checkTier3 = function (compound) {
-
-	let myRooms = _.filter(Game.rooms, room => {
-		return room.my && room.storage && room.terminal;
-	});
-	for (let room of myRooms) {
+	for (let room of acceptedRooms) {
 		if (room.resourcesAll[compound] < global.COMPOUNDS_TO_MAKE[compound].roomThreshold || 0)
 			console.log(`${room.name}: ${compound} ${room.resourcesAll[compound] || 0}`);
 	}
@@ -195,11 +182,7 @@ viralUtil.checkTier3 = function (compound) {
 
 viralUtil.storageFull = function () {
 
-	let myRooms = _.filter(Game.rooms, room => {
-		return room.my && room.storage && room.terminal;
-	});
-
-	for (let room of myRooms) {
+	for (let room of acceptedRooms) {
 
 		let sumStorage = _.sum(room.storage.store);
 
@@ -230,11 +213,7 @@ viralUtil.roomEnergy = () => {
 
 viralUtil.terminalFull = function () {
 
-	let myRooms = _.filter(Game.rooms, room => {
-		return room.my && room.storage && room.terminal;
-	});
-
-	for (let room of myRooms) {
+	for (let room of acceptedRooms) {
 
 		let sumTerminal = _.sum(room.terminal.store);
 
@@ -251,11 +230,7 @@ viralUtil.terminalFull = function () {
 
 viralUtil.mineralFull = function () {
 
-	let myRooms = _.filter(Game.rooms, room => {
-		return room.my && room.storage && room.terminal;
-	});
-
-	for (let room of myRooms) {
+	for (let room of acceptedRooms) {
 
 		let mineralType = room.memory.mineralType,
 			storageStore = room.storage.store[mineralType],
@@ -267,11 +242,7 @@ viralUtil.mineralFull = function () {
 };
 viralUtil.allocatedRooms = function () {
 
-	let myRooms = _.filter(Game.rooms, room => {
-		return room.my && room.storage && room.terminal;
-	});
-
-	for (let room of myRooms) {
+	for (let room of acceptedRooms) {
 
 		let data = room.memory.resources,
 			allocatedCompound,
@@ -300,7 +271,6 @@ viralUtil.allocatedRooms = function () {
 viralUtil.terminalOrderToSell = function (roomName) {
 
 	if (_.isUndefined(roomName)) {
-		let myRooms = _.filter(Game.rooms, {'my': true});
 		for (let room of myRooms)
 			room.terminalOrderToSell();
 	} else
@@ -312,7 +282,6 @@ viralUtil.terminalBroker = function (roomName = undefined) {
 
 
 	if (_.isUndefined(roomName)) {
-		let myRooms = _.filter(Game.rooms, {'my': true});
 		for (let room of myRooms) {
 			console.log(`util at ${room.name}`);
 			room.terminalBroker();
@@ -322,7 +291,6 @@ viralUtil.terminalBroker = function (roomName = undefined) {
 };
 
 viralUtil.terminalEnergy = () => {
-	let myRooms = _.filter(Game.rooms, {'my': true});
 
 	for (let room of myRooms) {
 		if (room.terminal.store[RESOURCE_ENERGY] < 10000)
@@ -333,9 +301,6 @@ viralUtil.terminalEnergy = () => {
 };
 
 viralUtil.fixTerminal = function (roomName = undefined) {
-
-
-	let myRooms = _.filter(Game.rooms, {'my': true});
 
 	let cleanTerminal = (room) => {
 		let data = room.memory.resources,
@@ -391,8 +356,7 @@ viralUtil.fixTerminal = function (roomName = undefined) {
 
 viralUtil.findOrders = function (roomName) {
 
-	let myRooms = _.filter(Game.rooms, {'my': true}),
-		counter = 0;
+	let counter = 0;
 
 	for (let room of myRooms) {
 
@@ -414,8 +378,7 @@ viralUtil.findOrders = function (roomName) {
 
 viralUtil.compoundMaking = function () {
 
-	let myRooms = _.filter(Game.rooms, {'my': true}),
-		counter = 0;
+	let counter = 0;
 
 	for (let room of myRooms) {
 
@@ -434,8 +397,6 @@ viralUtil.compoundMaking = function () {
 viralUtil.cancelTerminalOrder = function (roomName) {
 
 	if (roomName === undefined) {
-		let myRooms = _.filter(Game.rooms, {'my': true});
-
 		for (let room of myRooms)
 			room.cancelTerminalOrderToSell();
 	} else
@@ -446,7 +407,6 @@ viralUtil.cancelTerminalOrder = function (roomName) {
 viralUtil.deleteTerminalOrder = function (roomName) {
 
 	if (roomName === undefined) {
-		let myRooms = _.filter(Game.rooms, {'my': true});
 
 		for (let room of myRooms)
 			room.memory.resources.terminal[0].orders = [];
@@ -527,7 +487,6 @@ viralUtil.createLab = function (roomName) {
 
 
 	if (roomName === undefined) {
-		let myRooms = _.filter(Game.rooms, {'my': true});
 
 		for (let room of myRooms)
 			create(room.name);
@@ -580,8 +539,7 @@ viralUtil.createResources = () => {
 // if second terminal built it deletes, the old id from memory
 viralUtil.terminalRepair = () => {
 
-	let data,
-		myRooms = _.filter(Game.rooms, {'my': true});
+	let data;
 
 	for (let room of myRooms) {
 		if (Memory.rooms[room.name].resources.terminal.length > 1) {
@@ -593,7 +551,69 @@ viralUtil.terminalRepair = () => {
 	}
 
 };
+viralUtil.rawMemory = () => {
 
+	const numActive = _.size(RawMemory.segments);
+	for (let i = 0; i < 100; i++) {
+		if (!_.isUndefined(RawMemory.segments[i])) {
+			console.log(`id: ${i} RawMemory.segments[i]: ${RawMemory.segments[i]}`);
+		}
+
+	}
+
+
+};
+
+viralUtil.getMyRooms = () => {
+	console.log(`myRooms: ${myRooms.length}`);
+	for (const room of myRooms) {
+		console.log(`room: ${room.name}`);
+	}
+};
+
+viralUtil.getAcceptedRooms = () => {
+	console.log(`myRooms: ${acceptedRooms.length}`);
+	for (const room of acceptedRooms) {
+		console.log(`room: ${room.name}`);
+	}
+};
+
+viralUtil.storeMinerals = () => {
+	console.log(`myRooms: ${acceptedRooms.length}`);
+	for (const room of acceptedRooms) {
+		room.storedMinerals();
+	}
+};
+
+viralUtil.getResourcesAll = (roomName, compound) => {
+	console.log(`resourcesAll: ${global.json(Game.rooms[roomName].resourcesAll)}`);
+	global.logSystem(roomName, `resources: ${Game.rooms[roomName].resourcesAll[compound]}`);
+
+};
+
+viralUtil.getResourcesCreeps = (roomName, compound) => {
+	console.log(`resourcesCreeps: ${global.json(Game.rooms[roomName].resourcesCreeps)}`);
+	global.logSystem(roomName, `resources: ${Game.rooms[roomName].resourcesCreeps[compound]}`);
+
+};
+
+viralUtil.getResourcesOffers = (roomName, compound) => {
+	console.log(`resourcesOffers: ${global.json(Game.rooms[roomName].resourcesOffers)}`);
+	global.logSystem(roomName, `resources: ${Game.rooms[roomName].resourcesOffers[compound]}`);
+
+};
+
+viralUtil.getResourcesOrders = (roomName, compound) => {
+	console.log(`resourcesOrders: ${global.json(Game.rooms[roomName].resourcesOrders)}`);
+	global.logSystem(roomName, `resources: ${Game.rooms[roomName].resourcesOrders[compound]}`);
+
+};
+
+viralUtil.getResourcesReactions = (roomName, compound) => {
+	console.log(`resourcesReactions: ${global.json(Game.rooms[roomName].resourcesReactions)}`);
+	global.logSystem(roomName, `resources: ${Game.rooms[roomName].resourcesReactions[compound]}`);
+
+};
 
 /*
 Orders[

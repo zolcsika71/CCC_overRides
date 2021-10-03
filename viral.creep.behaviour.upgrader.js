@@ -109,7 +109,7 @@ viralCreepBehaviourUpgrader.run = function (creep) {
             return containerSpots.length ? containerSpots : (storageSpots.length ? storageSpots : terminalSpots);
         };
         let spots = determineSpots();
-        logSystem(creep.room.name, `spots: ${spots.length}`);
+        // logSystem(creep.room.name, `spots: ${spots.length}`);
         if (spots.length > 0) {
             // allow spots near sources
             spots = determineSpots(true);
