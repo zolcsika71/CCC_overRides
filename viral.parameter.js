@@ -354,7 +354,7 @@ let mod = {
 	// auto flower register labs
 	AUTO_REGISTER_LABS: true, // it needs MAKE_COMPOUNDS: true
 	// make boostProduction on/off
-	MAKE_COMPOUNDS: true,
+	MAKE_COMPOUNDS: false,
 	// checks the rooms in this interval to make compounds
 	MAKE_COMPOUNDS_INTERVAL: 5,
 	MAKE_REACTIONS_WITH_3LABS: false,
@@ -364,19 +364,19 @@ let mod = {
 	COMPOUNDS_TO_MAKE: {    // which compound to make
 		G: {                // for nukes
 			make: true,    // make it or not
-			roomThreshold: 0,   // start producing when room.resourcesAll[compound] <= roomThreshold
-			amount: 10000,   // amount to make when room.resourcesAll <= roomThreshold (keep producing, while room.resourcesAll[compound] < amount + roomThreshold)
+			roomThreshold: 10000, // start producing when room.resourcesAll[compound] <= roomThreshold
+			amount: 5000,   // amount to make when room.resourcesAll <= roomThreshold (keep producing, while room.resourcesAll[compound] < amount + roomThreshold)
 			rooms: [],       // rooms involved, leave it empty for all rooms
 		},
 		GH2O: {        // +80% upgradeController effectiveness without increasing the energy cost
 			make: true,
 			roomThreshold: 10000,
-			amount: 3000,
+			amount: 5000,
 			rooms: [],
 		},
 		XGH2O: {        // +100% upgradeController effectiveness without increasing the energy cost
 			make: true,
-			roomThreshold: 25000,
+			roomThreshold: 20000,
 			amount: 3000,
 			rooms: [],
 		},
@@ -441,14 +441,14 @@ let mod = {
 
 	// mineral allocation
 	ALLOCATE_COMPOUNDS: true,
-	ALLOCATE_COMPOUNDS_INTERVAL: 100,
+	ALLOCATE_COMPOUNDS_INTERVAL: 30,
 	UNREGISTER_BOOSTLAB_AT: 450,
 	COMPOUNDS_TO_ALLOCATE: { // if modified -> delete Memory.compoundsToAllocate
 		G: {       // for Nukes
 			allocate: true,
 			allocateRooms: [],
 			roomThreshold: 5000,
-			amount: 3000,
+			amount: 5000,
 			storeTo: 'storage',
 			labRefilledAt: 1500,
 		},
@@ -465,7 +465,7 @@ let mod = {
 			superior: 'XGH2O', // do not allocate when superior allocated or making with 10 labs
 			allocateRooms: [],
 			roomThreshold: 5000,
-			amount: 3000,
+			amount: 5000,
 			storeTo: 'storage',
 			labRefilledAt: 1500,
 		},

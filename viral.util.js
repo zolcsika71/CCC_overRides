@@ -60,8 +60,8 @@ viralUtil.deleteConstructionSites = function (roomName) {
 };
 
 viralUtil.DCS = function () {
-	for (const cs in Game.constructionSite) {
-		Game.constructionSite(cs).remove();
+	for (const cs in Game.constructionSites) {
+		Game.constructionSites[cs].remove();
 	}
 };
 
@@ -147,9 +147,15 @@ viralUtil.launchNuke = function (roomA, roomB, x, y) {
 	console.log(`hello`);
 
 	let roomFrom = Game.rooms[roomA],
+		roomTo = Game.rooms[roomB],
 		nuke = Game.getObjectById(roomFrom.memory.nukers[0].id),
 		target = new RoomPosition(x, y, roomB),
 		returnValue;
+
+	if (_.isUndefined(roomTo)) {
+		console.log(`targetRoom: ${roomB} not visible`);
+	}
+
 
 	if (!nuke.isActive())
 		return false;
@@ -161,6 +167,11 @@ viralUtil.launchNuke = function (roomA, roomB, x, y) {
 
 	if (nuke.store['G'] < nuke.store.getCapacity('G')) {
 		console.log(`not enough G to launch nuke! ghodium: ${nuke.store['G']} ghodiumCapacity: ${nuke.store.getCapacity('G')}`);
+		return false;
+	}
+
+	if (Game.map.getRoomLinearDistance(roomFrom.name, roomTo.name) > 10) {
+		console.log(`${roomB} is too far to launch nuke`);
 		return false;
 	}
 
@@ -578,15 +589,15 @@ viralUtil.getAcceptedRooms = () => {
 	}
 };
 
-viralUtil.storeMinerals = () => {
-	console.log(`myRooms: ${acceptedRooms.length}`);
-	for (const room of acceptedRooms) {
-		room.storedMinerals();
-	}
+viralUtil.getStoreMinerals = (roomName, compound) => {
+	global.logSystem(roomName, `resources: ${Game.rooms[roomName].storedMinerals(compound)}`);
+};
+
+viralUtil.getResourcesToAllocate = (roomName, compound) => {
+	global.logSystem(roomName, `resources: ${Game.rooms[roomName].resourcesToAllocate(compound)}`);
 };
 
 viralUtil.getResourcesAll = (roomName, compound) => {
-	console.log(`resourcesAll: ${global.json(Game.rooms[roomName].resourcesAll)}`);
 	global.logSystem(roomName, `resources: ${Game.rooms[roomName].resourcesAll[compound]}`);
 
 };
@@ -614,6 +625,60 @@ viralUtil.getResourcesReactions = (roomName, compound) => {
 	global.logSystem(roomName, `resources: ${Game.rooms[roomName].resourcesReactions[compound]}`);
 
 };
+
+viralUtil.checkTerminalOrders = (roomName) => {
+	let data = Game.rooms[roomName].memory.resources;
+	for (let order of data.terminal[0].orders) {
+		global.BB(order);
+		if (order.storeAmount === 0)
+			order.storeAmount = 100;
+	}
+
+};
+
+viralUtil.checkStorageOrders = () => {
+	for (let room of acceptedRooms) {
+		let data = room.memory.resources;
+		for (let order of data.storage[0].orders) {
+			if (order.type === 'G')
+				console.log(`room: ${room.name}`);
+		}
+	}
+};
+
+viralUtil.checkTerminalOrdersType = () => {
+
+	for (const room of acceptedRooms) {
+
+		let data = room.memory.resources;
+		for (let order of data.terminal[0].orders) {
+			if (Array.isArray(order)) {
+				// order = {};}
+				console.log(`room: ${room.name}`);
+			}
+		}
+
+	}
+};
+
+
+viralUtil.getResourcesAllButMe = (roomName, compound) => {
+	global.logSystem(roomName, `resourcesAllButMe: ${Game.rooms[roomName].resourcesAllButMe(compound)}`);
+};
+
+viralUtil.checkCompoundThreshold = () => {
+	for (const room of acceptedRooms) {
+		for (const compound in Memory.compoundsToAllocate) {
+			let compoundObject = Memory.compoundsToAllocate[compound];
+			if (compoundObject.allocate) {
+				if ((room.resourcesAll[compound] || 0) < Memory.compoundsToAllocate[compound].roomThreshold)
+					global.logSystem(room.name, `${compound}: ${room.resourcesAll[compound] || 0}`);
+			}
+
+		}
+	}
+};
+
 
 /*
 Orders[

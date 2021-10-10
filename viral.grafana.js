@@ -69,25 +69,29 @@ mod.energy = function (room, object) {
 		available: room.energyAvailable,
 		capacityAvailable: room.energyCapacityAvailable,
 	};
-	if (room.storage && room.terminal) {
-		Memory.stats.empireEnergy += room.storage.store[RESOURCE_ENERGY];
-		Memory.stats.empireEnergy += room.terminal.store[RESOURCE_ENERGY];
-	}
+
+	Memory.stats.empireEnergy = Memory.stats.empireMinerals['energy'];
 
 };
 // TODO energy add from empireEnergy
 mod.empireMineral = function (room) {
 	if (room.storage && room.terminal) {
-		for (const mineral in room.storage.store) {
+		for (const mineral in room.resourcesAll) {
 			if (!Memory.stats.empireMinerals[mineral])
 				Memory.stats.empireMinerals[mineral] = 0;
-			Memory.stats.empireMinerals[mineral] += room.storage.store[mineral];
+			Memory.stats.empireMinerals[mineral] += room.resourcesAll[mineral];
 		}
-		for (const mineral in room.terminal.store) {
-			if (!Memory.stats.empireMinerals[mineral])
-				Memory.stats.empireMinerals[mineral] = 0;
-			Memory.stats.empireMinerals[mineral] += room.terminal.store[mineral];
-		}
+
+		// for (const mineral in room.storage.store) {
+		// 	if (!Memory.stats.empireMinerals[mineral])
+		// 		Memory.stats.empireMinerals[mineral] = 0;
+		// 	Memory.stats.empireMinerals[mineral] += room.storage.store[mineral];
+		// }
+		// for (const mineral in room.terminal.store) {
+		// 	if (!Memory.stats.empireMinerals[mineral])
+		// 		Memory.stats.empireMinerals[mineral] = 0;
+		// 	Memory.stats.empireMinerals[mineral] += room.terminal.store[mineral];
+		// }
 	}
 };
 

@@ -20,7 +20,7 @@ mod.extend = function () {
 		let data = this.memory.resources;
 		if (!this.my || !data) return;
 
-		// go through reallacation orders and reset completed orders
+		// go through reallocation orders and reset completed orders
 		for (let structureType in data) {
 			for (let i = 0; i < data[structureType].length; i++) {
 				let structure = data[structureType][i];
@@ -87,35 +87,37 @@ mod.extend = function () {
 		if (!this.memory.resources || !this.memory.resources.orders)
 			return;
 		let rooms = _.filter(acceptedRooms, room => {
-			return room.name !== this.name;
+			return room.name !== this.name ;
 		});
 		let orders = this.memory.resources.orders;
-		for (let i = 0; i < orders.length; i++) {
-			let order = orders[i];
+		for (let [i, order] of orders.entries()) {
 			let amountRemaining = order.amount;
-			for (let j = 0; j < order.offers.length; j++) {
-				let offer = order.offers[j];
+			for (let [j, offer] of order.offers.entries()) {
 				if (Memory.rooms[offer.room] && Memory.rooms[offer.room].resources && Memory.rooms[offer.room].resources.offers) {
 					let remoteOffers = Memory.rooms[offer.room].resources.offers;
 					let idx = remoteOffers.indexOf(o => {
 						return o.room === this.name && o.id === order.id && o.type === order.type;
 					});
-					if (idx !== -1)
+					if (idx !== -1) {
 						remoteOffers.splice(idx, 1);
+						// added line
+						j--
+					}
 				}
 			}
 			order.offers = [];
 			if (amountRemaining <= 0) {
-				//orders.splice(i, 1);
-				//i--;
-				delete orders[i];
-				orders.splice(i--, 1);
+				orders.splice(i, 1);
+				i--;
 			} else {
+
 				rooms.sort((a, b) => {
 					return Game.map.getRoomLinearDistance(this.name, a.name, true) - Game.map.getRoomLinearDistance(this.name, b.name, true);
 				});
 				for (let j = 0; j < rooms.length; j++) {
+
 					let room = rooms[j];
+
 					if (room.memory.resources === undefined) {
 						room.memory.resources = {
 							lab: [],
@@ -125,16 +127,19 @@ mod.extend = function () {
 							powerSpawn: [],
 						};
 					}
+
 					if (!room.memory.resources.offers)
 						room.memory.resources.offers = [];
+
 					let remoteOffers = room.memory.resources.offers;
 					let available = room.resourcesAll[order.type] || 0;
+
 					if (available < global.MIN_OFFER_AMOUNT)
 						continue;
 
 					// for COMPOUNDS_TO_ALLOCATE
 					if (!_.isUndefined(global.COMPOUNDS_TO_ALLOCATE[order.type]) && global.COMPOUNDS_TO_ALLOCATE[order.type].allocate) {
-						let reservedAmount = global.COMPOUNDS_TO_ALLOCATE[order.type].amount + global.COMPOUNDS_TO_ALLOCATE[order.type].roomThreshold;
+						let reservedAmount = global.COMPOUNDS_TO_ALLOCATE[order.type].roomThreshold;
 						if (available < reservedAmount + global.MIN_OFFER_AMOUNT)
 							continue;
 						else
@@ -210,7 +215,7 @@ mod.extend = function () {
 				return o.room === this.name;
 			});
 			if (targetOfferIdx === -1) {
-				logSystem(this.name, 'Orphaned offer found and deleted');
+				global.logSystem(this.name, 'Orphaned offer found and deleted');
 				offers.splice(i--, 1);
 				continue;
 			}
@@ -473,8 +478,13 @@ mod.extend = function () {
 	};
 
 	Room.prototype.placeRoomOrder = function (orderId, resourceType, amount) {
+
 		if (amount <= 0)
 			return OK;
+
+		if (amount > this.resourcesAllButMe(resourceType))
+			return false;
+
 		if (this.memory.resources === undefined) {
 			this.memory.resources = {
 				lab: [],
@@ -494,12 +504,15 @@ mod.extend = function () {
 		});
 		if (existingOrder) {
 			// update existing order
-			if (global.DEBUG && global.TRACE) trace('Room', {roomName: this.name, actionName: 'placeRoomOrder', subAction: 'update', orderId: orderId, resourceType: resourceType, amount: amount});
+			if (global.DEBUG && global.TRACE)
+				global.trace('Room', {roomName: this.name, actionName: 'placeRoomOrder', subAction: 'update', orderId: orderId, resourceType: resourceType, amount: amount});
 			existingOrder.amount = amount;
 		} else {
 			// create new order
-			if (global.DEBUG && global.TRACE) trace('Room', {roomName: this.name, actionName: 'placeRoomOrder', subAction: 'new', orderId: orderId, resourceType: resourceType, amount: amount});
-			if (global.DEBUG) logSystem(this.name, `New room order with id ${orderId} placed for ${amount} ${resourceType}.`);
+			if (global.DEBUG && global.TRACE)
+				global.trace('Room', {roomName: this.name, actionName: 'placeRoomOrder', subAction: 'new', orderId: orderId, resourceType: resourceType, amount: amount});
+			if (global.DEBUG)
+				global.logSystem(this.name, `New room order with id ${orderId} placed for ${amount} ${resourceType}.`);
 			orders.push({
 				id: orderId,
 				type: resourceType,
@@ -815,7 +828,7 @@ mod.extend = function () {
 			for (const mineral in this.terminal.store) {
 
 				// global.logSystem(that.name, `mineral: ${mineral} cloaked: ${cloakedMinerals(mineral)}`);
-				global.logSystem(that.name, `transaction count: ${numberOfTransactions.count},  NOT transacting: ${!transacting}`);
+				// global.logSystem(that.name, `transaction count: ${numberOfTransactions.count},  NOT transacting: ${!transacting}`);
 				// global.logSystem(that.name, `compound sell: ${global.SELL_COMPOUND[mineral] && global.SELL_COMPOUND[mineral].sell && this.terminal.store[mineral] >= global.MIN_COMPOUND_SELL_AMOUNT && numberOfTransactions.count <= 10 && !transacting}`);
 
 				if (transacting || cloakedMinerals(mineral))
@@ -928,16 +941,19 @@ mod.extend = function () {
 							global.logSystem(this.name, `id: ${order.id} ratio: ${global.roundUp(order.ratio, 4)} price: ${order.price} credit: ${global.roundUp(order.credits / order.transactionAmount, 4)}`);
 						}
 						let result = Game.market.deal(order.id, order.transactionAmount, this.name);
-						if (global.DEBUG || SELL_NOTIFICATION) logSystem(this.name, `Selling ${order.transactionAmount} ${mineral} for ${global.roundUp(order.credits)} (${order.price} ¢/${mineral}, ${order.transactionCost} report: ${translateErrorCode(result)}`);
+						if (global.DEBUG || global.SELL_NOTIFICATION)
+							global.logSystem(this.name, `Selling ${order.transactionAmount} ${mineral} for ${global.roundUp(order.credits)} (${order.price} ¢/${mineral}, ${order.transactionCost} report: ${global.translateErrorCode(result)}`);
 						if (SELL_NOTIFICATION) Game.notify(`<h2>Room ${this.name} executed an order!</h2><br/>Result: ${translateErrorCode(result)}<br/>Details:<br/>${JSON.stringify(order).replace(',', ',<br/>')}`);
 						if (result === OK && Memory.numberOfTransactions.time === Game.time)
 							numberOfTransactions.count++;
 						transacting = result === OK;
 						//break;
-					} else
-						global.logSystem(this.name, `No order found for ${mineral}`);
-				} else
-					global.logSystem(this.name, `Can NOT sell ${mineral}`);
+					} else {
+						// global.logSystem(this.name, `No order found for ${mineral}`);
+					}
+				} else {
+					// global.logSystem(this.name, `Can NOT sell ${mineral}`);
+				}
 			}
 
 
