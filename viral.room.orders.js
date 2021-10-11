@@ -223,17 +223,21 @@ mod.extend = function () {
 			let store = this.terminal.store[offer.type] || 0;
 			let onOrder = 0;
 			let terminalOrder = null;
-			if (this.memory.resources.terminal[0]) terminalOrder = this.memory.resources.terminal[0].orders.find((o) => {
+			if (this.memory.resources.terminal[0])
+				terminalOrder = this.memory.resources.terminal[0].orders.find((o) => {
 				return o.type === offer.type;
 			});
-			if (terminalOrder) onOrder = terminalOrder.orderRemaining;
+			if (terminalOrder)
+				onOrder = terminalOrder.orderRemaining;
 			let amount = Math.max(offer.amount, global.MIN_OFFER_AMOUNT);
 			if (amount > (store + onOrder)) {
 				let amt = amount - (store + onOrder);
-				if (global.DEBUG && global.TRACE) trace('Room', {actionName: 'fillARoomOrder', subAction: 'terminalOrder', roomName: this.name, targetRoomName: targetRoom.name, resourceType: offer.type, amount: amt});
+				if (global.DEBUG && global.TRACE)
+					global.trace('Room', {actionName: 'fillARoomOrder', subAction: 'terminalOrder', roomName: this.name, targetRoomName: targetRoom.name, resourceType: offer.type, amount: amt});
 				this.placeOrder(this.terminal.id, offer.type, amt);
 			}
-			if (!targetRoom.terminal) continue;
+			if (!targetRoom.terminal)
+				continue;
 			let space = targetRoom.terminal.store.getCapacity() - targetRoom.terminal.sum;
 			amount = Math.min(amount, space, store);
 
@@ -242,8 +246,10 @@ mod.extend = function () {
 				amount -= cost;
 				cost += amount;
 			}
-			if (cost > (this.terminal.store.energy || 0)) continue;
-			if (amount < global.MIN_OFFER_AMOUNT) continue;
+			if (cost > (this.terminal.store.energy || 0))
+				continue;
+			if (amount < global.MIN_OFFER_AMOUNT)
+				continue;
 
 			ret = this.terminal.send(offer.type, amount, targetRoom.name, order.id);
 			if (ret === OK) {
