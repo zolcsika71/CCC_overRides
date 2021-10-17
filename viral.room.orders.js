@@ -8,8 +8,8 @@ mod.analyzeRoom = function (room, needMemoryResync) {
 			//room.garbageCollectStorageOrders();
 			//room.garbageCollectTerminalOrders();
 			room.updateRoomOrders();
-			room.cancelTerminalOrderToSell();
-			room.terminalOrderToSell();
+			// room.cancelTerminalOrderToSell();
+			// room.terminalOrderToSell();
 			room.terminalBroker();
 		}
 	}
@@ -87,7 +87,7 @@ mod.extend = function () {
 		if (!this.memory.resources || !this.memory.resources.orders)
 			return;
 		let rooms = _.filter(acceptedRooms, room => {
-			return room.name !== this.name ;
+			return room.name !== this.name;
 		});
 		let orders = this.memory.resources.orders;
 		for (let [i, order] of orders.entries()) {
@@ -101,7 +101,7 @@ mod.extend = function () {
 					if (idx !== -1) {
 						remoteOffers.splice(idx, 1);
 						// added line
-						j--
+						j--;
 					}
 				}
 			}
@@ -118,18 +118,18 @@ mod.extend = function () {
 
 					let room = rooms[j];
 
-					if (room.memory.resources === undefined) {
-						room.memory.resources = {
-							lab: [],
-							container: [],
-							terminal: [],
-							storage: [],
-							powerSpawn: [],
-						};
-					}
-
-					if (!room.memory.resources.offers)
-						room.memory.resources.offers = [];
+					// if (room.memory.resources === undefined) {
+					// 	room.memory.resources = {
+					// 		lab: [],
+					// 		container: [],
+					// 		terminal: [],
+					// 		storage: [],
+					// 		powerSpawn: [],
+					// 	};
+					// }
+					//
+					// if (!room.memory.resources.offers)
+					// 	room.memory.resources.offers = [];
 
 					let remoteOffers = room.memory.resources.offers;
 					let available = room.resourcesAll[order.type] || 0;
@@ -195,9 +195,11 @@ mod.extend = function () {
 			return false;
 
 		let offers = this.memory.resources.offers,
-			ret = false;
+			ret = false,
+			retSend = false;
 
 		for (let i = 0; i < offers.length; i++) {
+
 			let offer = offers[i];
 			let targetRoom = Game.rooms[offer.room];
 
@@ -225,8 +227,8 @@ mod.extend = function () {
 			let terminalOrder = null;
 			if (this.memory.resources.terminal[0])
 				terminalOrder = this.memory.resources.terminal[0].orders.find((o) => {
-				return o.type === offer.type;
-			});
+					return o.type === offer.type;
+				});
 			if (terminalOrder)
 				onOrder = terminalOrder.orderRemaining;
 			let amount = Math.max(offer.amount, global.MIN_OFFER_AMOUNT);
@@ -234,47 +236,65 @@ mod.extend = function () {
 				let amt = amount - (store + onOrder);
 				if (global.DEBUG && global.TRACE)
 					global.trace('Room', {actionName: 'fillARoomOrder', subAction: 'terminalOrder', roomName: this.name, targetRoomName: targetRoom.name, resourceType: offer.type, amount: amt});
-				this.placeOrder(this.terminal.id, offer.type, amt);
+				ret = this.placeOrder(this.terminal.id, offer.type, amt);
+				if (ret !== OK)
+					return ret;
 			}
+
 			if (!targetRoom.terminal)
 				continue;
+
 			let space = targetRoom.terminal.store.getCapacity() - targetRoom.terminal.sum;
 			amount = Math.min(amount, space, store);
 
 			let cost = Game.market.calcTransactionCost(amount, this.name, targetRoom.name);
 			if (offer.type === RESOURCE_ENERGY) {
-				amount -= cost;
 				cost += amount;
+				if (cost > (this.terminal.store.energy || 0)) {
+					amount -= cost;
+					cost = Game.market.calcTransactionCost(amount, this.name, targetRoom.name);
+				}
+
 			}
 			if (cost > (this.terminal.store.energy || 0))
 				continue;
 			if (amount < global.MIN_OFFER_AMOUNT)
 				continue;
 
-			ret = this.terminal.send(offer.type, amount, targetRoom.name, order.id);
-			if (ret === OK) {
-				if (global.DEBUG && global.TRACE) trace('Room', {actionName: 'fillARoomOrder', roomName: this.name, targetRoomName: targetRoom.name, resourceType: offer.type, amount: amount});
-				if (global.DEBUG) logSystem(this.name, `Room order filled to ${targetRoom.name} for ${amount} ${offer.type}.`);
+			retSend = this.terminal.send(offer.type, amount, targetRoom.name, order.id);
+			if (retSend === OK) {
+				if (global.DEBUG && global.TRACE)
+					global.trace('Room', {actionName: 'fillARoomOrder', roomName: this.name, targetRoomName: targetRoom.name, resourceType: offer.type, amount: amount});
+				if (global.DEBUG)
+					global.logSystem(this.name, `Room order filled to ${targetRoom.name} for ${amount} ${offer.type}.`);
 				offer.amount -= amount;
 				if (offer.amount > 0) {
 					order.offers[targetOfferIdx].amount = offer.amount;
+					if (terminalOrder) {
+						let needing = offer.amount - store;
+						if (needing > 0) {
+							terminalOrder.orderAmount = needing;
+							terminalOrder.orderRemaining = needing;
+						} else
+							terminalOrder.orderRemaining = 0;
+					}
 				} else {
-					delete order.offers[targetOfferIdx];
+					// delete order.offers[targetOfferIdx];
 					order.offers.splice(targetOfferIdx, 1);
-					delete offers[i];
+					// delete offers[i];
 					offers.splice(i--, 1);
 				}
 				order.amount -= amount;
-				return true;
+				return OK;
 			}
 		}
 
-		return ret;
+		return retSend;
 	};
 
 	Room.prototype.prepareResourceOrder = function (containerId, resourceType, amount) {
 		let container = Game.getObjectById(containerId);
-		if (!this.my || !container || !container.room.name === this.name ||
+		if (!this.my || !container || container.room.name !== this.name ||
 			!(container.structureType === STRUCTURE_LAB ||
 				container.structureType === STRUCTURE_POWER_SPAWN ||
 				container.structureType === STRUCTURE_NUKER ||
@@ -286,20 +306,21 @@ mod.extend = function () {
 		if (!RESOURCES_ALL.includes(resourceType)) {
 			return ERR_INVALID_ARGS;
 		}
-		if (this.memory.resources === undefined) {
-			this.memory.resources = {
-				lab: [],
-				powerSpawn: [],
-				nuker: [],
-				container: [],
-				terminal: [],
-				storage: [],
-			};
-		}
-		if (this.memory.resources.powerSpawn === undefined)
-			this.memory.resources.powerSpawn = [];
-		if (this.memory.resources.nuker === undefined)
-			this.memory.resources.nuker = [];
+		// if (this.memory.resources === undefined) {
+		// 	this.memory.resources = {
+		// 		lab: [],
+		// 		powerSpawn: [],
+		// 		nuker: [],
+		// 		container: [],
+		// 		terminal: [],
+		// 		storage: [],
+		// 	};
+		// }
+		// if (this.memory.resources.powerSpawn === undefined)
+		// 	this.memory.resources.powerSpawn = [];
+		// if (this.memory.resources.nuker === undefined)
+		// 	this.memory.resources.nuker = [];
+
 		if (!this.memory.resources[container.structureType].find((s) => s.id === containerId)) {
 			this.memory.resources[container.structureType].push(container.structureType === STRUCTURE_LAB ? {
 				id: containerId,
@@ -321,6 +342,25 @@ mod.extend = function () {
 				}
 			}
 		}
+		// Garbage collecting terminal orders
+		// if (container.structureType === STRUCTURE_TERMINAL) {
+		// 	let data = this.memory.resources;
+		// 	let terminalOrders = data.terminal[0].orders;
+		//
+		// 	for (let [idx, order] of terminalOrders.entries()) {
+		// 		if (order.storeAmount === 100 && order.orderRemaining === 0 && order.orderAmount !== 0) {
+		// 			order.orderAmount = 0;
+		// 		}
+		// 		let terminalStored = this.terminal.store[order.type] || 0;
+		// 		if (order.storeAmount === 0
+		// 			&& (order.orderAmount - order.orderRemaining !== terminalStored + (this.resourcesCreeps[order.type] || 0))) {
+		// 			terminalOrders.splice(idx, 1);
+		// 			idx--;
+		// 		}
+		// 	}
+		// }
+
+
 		return OK;
 	};
 
@@ -335,12 +375,14 @@ mod.extend = function () {
 				let existingOrder = containerData.orders.find((r) => r.type === resourceType);
 				if (existingOrder) {
 					// delete structure order
-					if (global.DEBUG && global.TRACE) trace('Room', {roomName: this.name, actionName: 'cancelOrder', orderId: orderId, resourceType: resourceType});
+					if (global.DEBUG && global.TRACE)
+						global.trace('Room', {roomName: this.name, actionName: 'cancelOrder', orderId: orderId, resourceType: resourceType});
 					containerData.orders.splice(containerData.orders.indexOf(existingOrder), 1);
 				}
 			} else {
 				// delete all of structure's orders
-				if (global.DEBUG && global.TRACE) trace('Room', {roomName: this.name, actionName: 'cancelOrder', orderId: orderId, resourceType: 'all'});
+				if (global.DEBUG && global.TRACE)
+					global.trace('Room', {roomName: this.name, actionName: 'cancelOrder', orderId: orderId, resourceType: 'all'});
 				containerData.orders = [];
 			}
 		}
@@ -388,33 +430,60 @@ mod.extend = function () {
 	Room.prototype.placeOrder = function (containerId, resourceType, amount) {
 		let container = Game.getObjectById(containerId);
 		let ret = this.prepareResourceOrder(containerId, resourceType, amount);
+		global.logSystem(this.name, `prepareResourceOrder: ${global.translateErrorCode(ret)}`);
 		if (ret !== OK) {
 			return ret;
 		}
+		let resourcesAll;
 
 		let containerData = this.memory.resources[container.structureType].find((s) => s.id === containerId);
+
 		if (containerData) {
 			let existingOrder = containerData.orders.find((r) => r.type === resourceType);
-			if (existingOrder) {
-				existingOrder.orderAmount += amount;
-				existingOrder.orderRemaining += amount;
+			let containerStore;
+
+			if (container.structureType === STRUCTURE_LAB) {
+				containerStore = (container.mineralType === resourceType) ? container.mineralAmount : 0;
 			} else {
-				let containerStore = 0;
-				if (container.structureType === STRUCTURE_LAB) {
-					containerStore = (container.mineralType === resourceType) ? container.mineralAmount : 0;
-				} else {
-					containerStore = (container.store[resourceType] || 0);
+				containerStore = container.store[resourceType] || 0;
+			}
+
+			let orderAmount = amount - containerStore;
+			if (container.structureType === STRUCTURE_TERMINAL)
+				resourcesAll = (this.resourcesAll[resourceType] || 0) + (this.resourcesOffers[resourceType] || 0);
+			else
+				resourcesAll = this.resourcesAll[resourceType] || 0;
+
+			global.logSystem(this.name, `orderAmount: ${orderAmount} resourcesAll: ${resourcesAll} ${resourceType}`);
+
+			if (existingOrder && (orderAmount <= resourcesAll)) {
+				global.logSystem(this.name, `order already exist:`);
+
+				if (orderAmount > 0) {
+					existingOrder.orderAmount = orderAmount;
+					existingOrder.orderRemaining = orderAmount;
 				}
+				global.BB(existingOrder);
+
+			} else if (orderAmount <= resourcesAll) {
+				global.logSystem(this.name, `new order placed: ${orderAmount} ${resourceType}`);
 				containerData.orders.push({
 					type: resourceType,
-					orderAmount: amount,
-					orderRemaining: amount - containerStore,
+					orderAmount: orderAmount,
+					orderRemaining: orderAmount,
 					storeAmount: 0,
 				});
-				if (container.structureType === STRUCTURE_LAB && containerData.reactionState !== 'Storage') {
-					containerData.reactionType = resourceType;
-				}
+				// global.BB(containerData.orders);
+				// if (container.structureType === STRUCTURE_LAB && containerData.reactionState !== 'Storage') {
+				// 	containerData.reactionType = resourceType;
+				// }
+
+			} else {
+				this.memory.resources[container.structureType].orders = []
+				// this.cancelOrder(containerId, resourceType);
+				return ERR_NOT_ENOUGH_RESOURCES;
 			}
+
 		}
 		return OK;
 	};
@@ -491,19 +560,19 @@ mod.extend = function () {
 		if (amount > this.resourcesAllButMe(resourceType))
 			return false;
 
-		if (this.memory.resources === undefined) {
-			this.memory.resources = {
-				lab: [],
-				container: [],
-				terminal: [],
-				storage: [],
-			};
-		}
-		if (this.memory.resources.powerSpawn === undefined)
-			this.memory.resources.powerSpawn = [];
-		if (this.memory.resources.orders === undefined) {
-			this.memory.resources.orders = [];
-		}
+		// if (this.memory.resources === undefined) {
+		// 	this.memory.resources = {
+		// 		lab: [],
+		// 		container: [],
+		// 		terminal: [],
+		// 		storage: [],
+		// 	};
+		// }
+		// if (this.memory.resources.powerSpawn === undefined)
+		// 	this.memory.resources.powerSpawn = [];
+		// if (this.memory.resources.orders === undefined) {
+		// 	this.memory.resources.orders = [];
+		// }
 		let orders = this.memory.resources.orders;
 		let existingOrder = orders.find((o) => {
 			return o.id === orderId && o.type === resourceType;
@@ -513,6 +582,7 @@ mod.extend = function () {
 			if (global.DEBUG && global.TRACE)
 				global.trace('Room', {roomName: this.name, actionName: 'placeRoomOrder', subAction: 'update', orderId: orderId, resourceType: resourceType, amount: amount});
 			existingOrder.amount = amount;
+
 		} else {
 			// create new order
 			if (global.DEBUG && global.TRACE)
@@ -640,25 +710,25 @@ mod.extend = function () {
 		// }
 
 		// old
-		if( this.controller.level === 8 && !transacting &&
+		if (this.controller.level === 8 && !transacting &&
 			Util.chargeScale(this.storage.store.energy - global.ENERGY_BALANCE_TRANSFER_AMOUNT,
 				global.MIN_STORAGE_ENERGY[this.controller.level],
 				global.MAX_STORAGE_ENERGY[this.controller.level]) > 1 &&
-			(this.terminal.store[this.mineralType]||0) < 150000 &&
-			this.terminal.store.energy > (global.ENERGY_BALANCE_TRANSFER_AMOUNT * 1.1)){
+			(this.terminal.store[this.mineralType] || 0) < 150000 &&
+			this.terminal.store.energy > (global.ENERGY_BALANCE_TRANSFER_AMOUNT * 1.1)) {
 			let requiresEnergy = room => (
 				room.my && room.storage && room.terminal &&
 				room.terminal.sum < room.terminal.store.getCapacity() - global.ENERGY_BALANCE_TRANSFER_AMOUNT &&
 				room.storage.sum < room.storage.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO &&
 				!room._isReceivingEnergy &&
 				room.storage.store[RESOURCE_ENERGY] < global.MAX_STORAGE_ENERGY[room.controller.level]
-			)
+			);
 			let targetRoom = _.min(_.filter(Game.rooms, requiresEnergy), 'storage.store.energy');
-			if( targetRoom instanceof Room
+			if (targetRoom instanceof Room
 				&& Game.market.calcTransactionCost(global.ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name) < (this.terminal.store.energy - global.ENERGY_BALANCE_TRANSFER_AMOUNT)) {
 				targetRoom._isReceivingEnergy = true;
 				let response = this.terminal.send('energy', global.ENERGY_BALANCE_TRANSFER_AMOUNT, targetRoom.name, 'have fun');
-				if( global.DEBUG )
+				if (global.DEBUG)
 					logSystem(that.name, `Transferring ${Util.formatNumber(global.ENERGY_BALANCE_TRANSFER_AMOUNT)} energy to ${targetRoom.name}: ${translateErrorCode(response)}`);
 				transacting = response === OK;
 			}
@@ -1075,7 +1145,7 @@ mod.extend = function () {
 		let orders = this.memory.resources.terminal[0].orders;
 
 		this.memory.resources.terminal[0].orders = _.filter(orders, order => {
-			return order.orderRemaining > 0;
+			return order.orderRemaining > 0 || order.storeAmount > 0;
 		});
 
 	};

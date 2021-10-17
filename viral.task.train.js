@@ -129,7 +129,7 @@ mod.checkForRequiredCreeps = (flag) => {
                         minEnergyCapacity: definition.minEnergyCapacity,
                         rangeRclRatio: 1,
                         allowTargetRoom: true,
-                        explicit: 'E27S15'
+                        explicit: 'E25S18'
                     },
                     creepSetup => { // onQueued callback
                         memory.queued.push({
@@ -173,8 +173,8 @@ mod.trainMemory = (flag, trainNum) => {
 mod.members = {
     trainTurret: [
         'trainLeader',
+        'trainRanged',
         'trainMedic',
-        'trainRanged'
     ]
 };
 mod.creep = {

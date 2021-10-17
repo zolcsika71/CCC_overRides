@@ -67,10 +67,11 @@ viralUtil.DCS = function () {
 
 // running data to debug a creep use
 viralUtil.data = function (creepName) {
-	//console.log('Explain');
-	//Game.creeps[creepName].explain();
+	console.log('Explain');
+	let ret = Game.creeps[creepName].explain();
+	global.logSystem(Game.creeps[creepName].room.name, `${ret}`);
 	console.log('JSON');
-	console.log(JSON.stringify(Game.creeps[creepName].data));
+	console.log(global.json(Game.creeps[creepName].data));
 };
 
 viralUtil.resetBoostProduction = function (roomName) {
@@ -103,8 +104,12 @@ viralUtil.resetBoostProduction = function (roomName) {
 					data.lab = [];
 					_.values(Game.structures).filter(i => i.structureType === 'lab').map(i => i.room.setStore(i.id, RESOURCE_ENERGY, 2000));
 				}
+
+				data.reactions.reactorMode = global.REACTOR_MODE_IDLE;
+
+
 				delete data.boostTiming;
-				delete data.seedCheck;
+				// delete data.seedCheck;
 			} else
 				console.log(`${room.name} has no memory.resources`);
 		}
@@ -170,10 +175,10 @@ viralUtil.launchNuke = function (roomA, roomB, x, y) {
 		return false;
 	}
 
-	if (Game.map.getRoomLinearDistance(roomFrom.name, roomTo.name) > 10) {
-		console.log(`${roomB} is too far to launch nuke`);
-		return false;
-	}
+	// if (Game.map.getRoomLinearDistance(roomFrom.name, roomTo.name) > 10) {
+	// 	console.log(`${roomB} is too far to launch nuke`);
+	// 	return false;
+	// }
 
 	returnValue = nuke.launchNuke(target);
 
@@ -251,6 +256,7 @@ viralUtil.mineralFull = function () {
 			console.log(room.name, mineralType);
 	}
 };
+
 viralUtil.allocatedRooms = function () {
 
 	for (let room of acceptedRooms) {
@@ -287,7 +293,6 @@ viralUtil.terminalOrderToSell = function (roomName) {
 	} else
 		Game.rooms[roomName].terminalOrderToSell();
 };
-
 
 viralUtil.terminalBroker = function (roomName = undefined) {
 
@@ -364,7 +369,6 @@ viralUtil.fixTerminal = function (roomName = undefined) {
 	}
 };
 
-
 viralUtil.findOrders = function (roomName) {
 
 	let counter = 0;
@@ -397,7 +401,7 @@ viralUtil.compoundMaking = function () {
 			reactions = data.reactions;
 
 		if (reactions.orders.length > 0) {
-			console.log(`${room.name} ${reactions.orders[0].type} ${reactions.orders[0].amount}`);
+			global.logSystem(room.name, `${reactions.orders[0].type} ${reactions.orders[0].amount}`);
 			//global.BB(terminalOrder.slice());
 			counter++;
 		}
@@ -562,6 +566,7 @@ viralUtil.terminalRepair = () => {
 	}
 
 };
+
 viralUtil.rawMemory = () => {
 
 	const numActive = _.size(RawMemory.segments);
@@ -625,6 +630,16 @@ viralUtil.getResourcesReactions = (roomName, compound) => {
 	global.logSystem(roomName, `resources: ${Game.rooms[roomName].resourcesReactions[compound]}`);
 
 };
+
+viralUtil.getOrdersPlacedRooms = () => {
+	let ordersPlacedRoom = _.filter(myRooms, room => {
+		let data = room.memory.resources;
+		if (!data || !data.boostTiming)
+			return false;
+		return data.boostTiming.roomState === 'ordersPlaced'
+	});
+	console.log(`ordersPlacedRooms: ${global.json(ordersPlacedRoom)}`);
+}
 
 viralUtil.checkTerminalOrders = (roomName) => {
 	let data = Game.rooms[roomName].memory.resources;

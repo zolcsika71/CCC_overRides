@@ -9,8 +9,9 @@ action.isAddableTarget = function () {
 action.reachedRange = 0;
 action.newTarget = function (creep) {
 
-    var flag;
-    if (creep.data.destiny) flag = Game.flags[creep.data.destiny.flagName];
+    let flag;
+    if (creep.data.destiny)
+        flag = Game.flags[creep.data.destiny.flagName];
     if (!flag) {
         flag = FlagDir.find(FLAG_COLOR.defense, creep.pos, false, FlagDir.rangeMod, {
             rangeModPerCrowd: 400
@@ -18,7 +19,8 @@ action.newTarget = function (creep) {
         });
     }
 
-    if (Room.isSKRoom(creep.pos.roomName) && creep.pos.roomName === creep.flag.pos.roomName) {
+    // if (Room.isSKRoom(creep.pos.roomName) && creep.pos.roomName === creep.flag.pos.roomName) {
+    if (Room.isSKRoom(creep.pos.roomName) && creep.pos.roomName === flag.pos.roomName) {
 
         let SKCreeps = [],
             otherHostiles = _.filter(creep.room.hostiles, hostile => {
@@ -50,7 +52,7 @@ action.newTarget = function (creep) {
     }
 
     if (flag) Population.registerCreepFlag(creep, flag);
-    return flag;
+        return flag;
 };
 action.work = function (creep) {
     if (creep.data.flagName)
