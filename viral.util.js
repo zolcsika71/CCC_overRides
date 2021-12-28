@@ -108,14 +108,14 @@ viralUtil.resetBoostProduction = function (roomName) {
 				data.reactions.reactorMode = global.REACTOR_MODE_IDLE;
 
 
-				delete data.boostTiming;
+				data.boostTiming = {};
 				// delete data.seedCheck;
 			} else
 				console.log(`${room.name} has no memory.resources`);
 		}
 	}
 	if (roomName === undefined)
-		delete Memory.boostTiming;
+		Memory.boostTiming = {};
 
 };
 
@@ -124,6 +124,7 @@ viralUtil.cleanTrace = function () {
 		delete room.memory.roadConstructionTrace;
 
 };
+
 viralUtil.roomStored = function (mineral) {
 
 	let roomStored = 0;
@@ -189,10 +190,14 @@ viralUtil.launchNuke = function (roomA, roomB, x, y) {
 
 };
 
-viralUtil.checkTier3 = function (compound) {
+viralUtil.checkTier3 = function () {
 	for (let room of acceptedRooms) {
-		if (room.resourcesAll[compound] < global.COMPOUNDS_TO_MAKE[compound].roomThreshold || 0)
-			console.log(`${room.name}: ${compound} ${room.resourcesAll[compound] || 0}`);
+
+		for (const [key, value] of Object.entries(global.COMPOUNDS_TO_MAKE)) {
+
+			if (room.resourcesAll[key] < global.COMPOUNDS_TO_MAKE[key].roomThreshold || 0)
+				console.log(`${room.name}: ${key} ${room.resourcesAll[key] || 0}`);
+		}
 	}
 };
 
@@ -215,10 +220,10 @@ viralUtil.storageFull = function () {
 viralUtil.roomEnergy = () => {
 
 
-	let requiresEnergy = _.filter(Game.rooms, room => {
+	let requiresEnergy = _.filter(acceptedRooms, room => {
 		return room.my && room.storage && room.terminal &&
-			room.terminal.store.getCapacity() < (room.terminal.sum + ENERGY_BALANCE_TRANSFER_AMOUNT) * TARGET_STORAGE_SUM_RATIO &&
-			room.storage.store.getCapacity() < (room.storage.sum + ENERGY_BALANCE_TRANSFER_AMOUNT) * TARGET_STORAGE_SUM_RATIO &&
+			room.terminal.store.getCapacity() > (room.terminal.sum + ENERGY_BALANCE_TRANSFER_AMOUNT) * TARGET_STORAGE_SUM_RATIO &&
+			room.storage.store.getCapacity() > (room.storage.sum + ENERGY_BALANCE_TRANSFER_AMOUNT) * TARGET_STORAGE_SUM_RATIO &&
 			!room._isReceivingEnergy &&
 			room.storage.store[RESOURCE_ENERGY] < MAX_STORAGE_ENERGY[room.controller.level];
 	});
@@ -233,15 +238,11 @@ viralUtil.terminalFull = function () {
 
 		let sumTerminal = _.sum(room.terminal.store);
 
-		if (sumTerminal >= room.terminal.store.getCapacity() * 0.9) {
+		if (sumTerminal >= room.terminal.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO) {
 			console.log(`${room.name} ${sumTerminal / room.terminal.store.getCapacity()}`);
+			room.terminalBroker();
 		}
-
-
 	}
-
-	console.log(`there is no full terminal`);
-
 };
 
 viralUtil.mineralFull = function () {
@@ -309,7 +310,7 @@ viralUtil.terminalBroker = function (roomName = undefined) {
 viralUtil.terminalEnergy = () => {
 
 	for (let room of myRooms) {
-		if (room.terminal.store[RESOURCE_ENERGY] < 10000)
+		if (room.terminal.store[RESOURCE_ENERGY] < 100000)
 			console.log(room.name);
 	}
 
@@ -514,13 +515,24 @@ viralUtil.clearRoomMemory = () => {
 	//Memory.pause = true;
 	console.log(`${Object.keys(Memory.rooms).length}`);
 	Object.keys(Memory.rooms).forEach(room => {
-		if ((_.isUndefined(Game.rooms[room]) || !Game.rooms[room].my) && room !== 'myTotalSites' && room !== 'myTotalStructures') {
+
+		// TODO check roadConstructionTrace (e.g: reset?), roadConstructionTrace is the biggest, run clean only if it`s enabled
+		if (!global.ROAD_CONSTRUCTION_ENABLE) {
+			delete Memory.rooms[room].roadConstructionTrace;
+		}
+
+		if (!global.SEND_STATISTIC_REPORTS) {
+			delete Memory.rooms[room].statistics;
+		}
+
+		if (_.isUndefined(Game.rooms[room]) && room !== 'myTotalSites' && room !== 'myTotalStructures') {
 			delete Memory.rooms[room];
+			// delete Memory.routeRange[room];
 			console.log(`${room}`);
 		}
 	});
 	console.log(`${Object.keys(Memory.rooms).length}`);
-	delete Memory.routeRange;
+
 	//Memory.pause = false;
 };
 
@@ -550,9 +562,8 @@ viralUtil.createResources = () => {
 
 };
 
-
 // if second terminal built it deletes, the old id from memory
-viralUtil.terminalRepair = () => {
+viralUtil.terminalIdRepair = () => {
 
 	let data;
 
@@ -636,10 +647,10 @@ viralUtil.getOrdersPlacedRooms = () => {
 		let data = room.memory.resources;
 		if (!data || !data.boostTiming)
 			return false;
-		return data.boostTiming.roomState === 'ordersPlaced'
+		return data.boostTiming.roomState === 'ordersPlaced';
 	});
 	console.log(`ordersPlacedRooms: ${global.json(ordersPlacedRoom)}`);
-}
+};
 
 viralUtil.checkTerminalOrders = (roomName) => {
 	let data = Game.rooms[roomName].memory.resources;
@@ -676,6 +687,51 @@ viralUtil.checkTerminalOrdersType = () => {
 	}
 };
 
+viralUtil.checkCreepNewTarget = (creep) => {
+	let sendMineralToTerminal = function (creep) {
+
+			for (const mineral in creep.room.storage.store) {
+
+				let validMineral = viralUtil.checkIsValidMineralToTerminal(creep.room, mineral);
+
+				console.log(`mineral: ${mineral} valid: ${validMineral}`);
+
+				if (creep.carry[mineral] && creep.carry[mineral] > 0 && validMineral)
+					return true;
+			}
+			return false;
+		},
+		sendEnergyToTerminal = function (creep) {
+			return creep.carry.energy > 0 &&
+				creep.room.storage.charge > 0.5 &&
+				creep.room.terminal.store.energy < TERMINAL_ENERGY * 0.95 &&
+				creep.room.terminal.sum < creep.room.terminal.store.getCapacity();
+		},
+		isValidTarget = function (target) {
+			return ((target) && (target.store) && target.active && target.sum < target.store.getCapacity() * TARGET_STORAGE_SUM_RATIO);
+		},
+		isAddableTarget = function (target, creep) {
+			return (target.my &&
+				(!target.targetOf || target.targetOf.length < Infinity) &&
+				target.sum + creep.carry[RESOURCE_ENERGY] < target.store.getCapacity());
+		};
+
+
+	let mineralToTerminal = sendMineralToTerminal(creep);
+	let energyToTerminal = sendEnergyToTerminal(creep);
+	global.logSystem(creep.room.name, `sendMineralToTerminal: ${mineralToTerminal}`);
+	global.logSystem(creep.room.name, `sendEnergyToTerminal: ${energyToTerminal}`);
+
+
+	if (creep.room.terminal && creep.room.terminal.active &&
+		(mineralToTerminal || energyToTerminal)
+		&& isAddableTarget(creep.room.terminal, creep)) {
+		return creep.room.terminal;
+	} else if (isValidTarget(creep.room.storage) && this.isAddableTarget(creep.room.storage, creep))
+		return creep.room.storage;
+
+	return null;
+};
 
 viralUtil.getResourcesAllButMe = (roomName, compound) => {
 	global.logSystem(roomName, `resourcesAllButMe: ${Game.rooms[roomName].resourcesAllButMe(compound)}`);
@@ -692,6 +748,182 @@ viralUtil.checkCompoundThreshold = () => {
 
 		}
 	}
+};
+
+viralUtil.findRoomToTransfer = () => {
+	let storedEnergy = Infinity,
+		ret;
+	for (const room of myRooms) {
+		if (room.storage.store.energy < storedEnergy) {
+			storedEnergy = room.storage.store.energy;
+			ret = room.name;
+		}
+	}
+
+	return ret;
+};
+
+viralUtil.deleteInvadersCore = () => {
+	for (let room in Memory.rooms) {
+		let currentRoom = Memory.rooms[room];
+		if (currentRoom.invadersCore) {
+			console.log(`room: ${room}`);
+			delete currentRoom.invadersCore;
+		}
+	}
+};
+
+viralUtil.isValidMineralToTerminal = () => {
+
+	for (const room of acceptedRooms) {
+
+		console.log(`ROOM: ${room.name}`);
+
+		let ret = false;
+
+		for (const [mineral, amount] of Object.entries(room.storage.store)) {
+
+			if (mineral === RESOURCE_ENERGY)
+				continue;
+
+			let mineralIsCompound = mineral.length > 1 || mineral === RESOURCE_GHODIUM;
+			let ret = false;
+			let storageFull = room.storage.sum >= room.storage.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO;
+			let terminalHaveFreeSpace = room.terminal.sum - room.terminal.store.energy
+				+ Math.max(room.terminal.store.energy, global.TERMINAL_ENERGY) < room.terminal.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO;
+			let storedMineral = room.storage.store[mineral];
+
+			if (!mineralIsCompound) {
+				if (mineral === room.mineralType) {
+					ret = (storedMineral || 0)
+						// storage near to full or stored too much mineral
+						&& (storageFull || storedMineral > global.MAX_STORAGE_MINERAL)
+						// terminal not stored more mineral than global.MAX_TERMINAL_MINERAL
+						&& room.terminal.sum - room.terminal.store.energy + global.TERMINAL_ENERGY < global.MAX_TERMINAL_MINERAL
+						// terminal have more than 30.000 free space
+						&& terminalHaveFreeSpace;
+					if (ret)
+						global.logSystem(room.name, `isValidToTerminal ROOM Mineral: ${mineral} amount: ${amount - global.MAX_STORAGE_MINERAL}`);
+
+				} else {
+					ret = storedMineral
+						&& (storageFull || storedMineral > global.MAX_STORAGE_NOT_ROOM_MINERAL)
+						&& room.terminal.sum - room.terminal.store.energy + global.TERMINAL_ENERGY < global.MAX_TERMINAL_MINERAL
+						&& terminalHaveFreeSpace;
+					if (ret)
+						global.logSystem(room.name, `isValidToTerminal NOT ROOM Mineral: ${mineral} amount: ${amount - global.MAX_STORAGE_NOT_ROOM_MINERAL}`);
+				}
+
+			} else if (global.SELL_COMPOUND[mineral] && global.SELL_COMPOUND[mineral].sell) {
+				ret = (storedMineral || 0)
+					&& (storageFull || storedMineral > global.SELL_COMPOUND[mineral].maxStorage)
+					&& room.terminal.sum - room.terminal.store.energy + global.TERMINAL_ENERGY < global.MAX_TERMINAL_MINERAL
+					&& terminalHaveFreeSpace;
+				if (ret)
+					global.logSystem(room.name, `isValidToTerminal COMPOUND: ${mineral} amount: ${amount - global.SELL_COMPOUND[mineral].maxStorage}`);
+			}
+		}
+	}
+};
+
+viralUtil.allCompounds = (roomName) => {
+	let allCompounds = {};
+	for (const compound of global.ALL_COMPOUNDS) {
+		global.logSystem(roomName, `${compound}: ${Game.rooms[roomName].resourcesAll[compound]}`);
+		allCompounds = Object.assign(allCompounds, {
+			[compound]: Game.rooms[roomName].resourcesAll[compound],
+		});
+	}
+	global.logSystem(roomName, `${global.json(allCompounds)}`);
+};
+
+viralUtil.sellOrders = (mineral) => {
+	console.log(`sell orders for ${mineral}:`);
+	console.log(`${global.json(global.marketOrders(mineral))}`);
+};
+
+viralUtil.buyOrders = (mineral) => {
+	console.log(`buy orders for ${mineral}:`);
+	console.log(`${global.json(global.marketOrders(mineral, false))}`);
+};
+
+viralUtil.energyPrice = () => {
+	let allHistory = Game.market.getHistory(RESOURCE_ENERGY);
+
+	console.log(`history: ${global.json(allHistory)} length: ${allHistory.length}`);
+
+	console.log(`price0: ${global.json(allHistory.slice(-1))}`);
+
+	console.log(`price: ${global.json(energyPrice)}`);
+
+	console.log(`history: ${global.json(allHistory)} length: ${allHistory.length}`);
+};
+
+viralUtil.memorySize = () => {
+	let memorySize = RawMemory.get().length;
+	console.log(`memory size: ${memorySize} bytes`);
+	console.log(`memory size: ${global.round(memorySize / 1024)} KB`);
+};
+
+viralUtil.freeSpace = (roomName) => {
+	let room = Game.rooms[roomName],
+		terminalFreeSpace = room.terminal.store.getFreeCapacity(),
+		storageFreeSpace = room.storage.store.getFreeCapacity(),
+		isFreeSpace = terminalFreeSpace > global.terminalCapacity * (1 - global.TARGET_STORAGE_SUM_RATIO) || storageFreeSpace > global.storageCapacity * (1 - global.TARGET_STORAGE_SUM_RATIO);
+
+
+	console.log(`terminalCapacity: ${global.terminalCapacity}`);
+	console.log(`storageCapacity: ${global.storageCapacity}`);
+	console.log(`terminalFreeSpace: ${terminalFreeSpace}`);
+	console.log(`storageFreeSpace: ${storageFreeSpace}`);
+	console.log(`freeSpace: ${isFreeSpace}`);
+
+};
+
+viralUtil.requiresEnergyRoom = () => {
+
+	for (let roomFrom of global.acceptedRooms) {
+
+		let charge = global.Util.chargeScale(roomFrom.storage.store.energy - global.ENERGY_BALANCE_TRANSFER_AMOUNT,
+			global.MIN_STORAGE_ENERGY[roomFrom.controller.level],
+			global.MAX_STORAGE_ENERGY[roomFrom.controller.level]);
+
+		global.logSystem(roomFrom.name, `stored: ${roomFrom.storage.store.energy} chargeScale: ${charge}`);
+
+		let transacting = false;
+
+		if (roomFrom.controller.level === 8 && !transacting && charge > 1 && roomFrom.terminal.store.energy > global.ENERGY_BALANCE_TRANSFER_AMOUNT * 1.1) {
+
+			let requiresEnergy = room => (
+				// room.my && room.storage && room.terminal &&
+				// room.terminal.sum < room.terminal.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO - global.ENERGY_BALANCE_TRANSFER_AMOUNT &&
+				// room.storage.sum < room.storage.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO - global.ENERGY_BALANCE_TRANSFER_AMOUNT &&
+				room.terminal.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO > room.terminal.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT &&
+				room.storage.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO > room.storage.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT &&
+				!room._isReceivingEnergy &&
+				room.storage.store[RESOURCE_ENERGY] < global.MAX_STORAGE_ENERGY[room.controller.level]
+			);
+
+			let roomTo = _.min(_.filter(global.acceptedRooms, requiresEnergy), 'storage.store.energy');
+
+			if (roomTo instanceof Room
+				&& Game.market.calcTransactionCost(global.ENERGY_BALANCE_TRANSFER_AMOUNT, roomFrom.name, roomTo.name) < (roomFrom.terminal.store.energy - global.ENERGY_BALANCE_TRANSFER_AMOUNT)) {
+
+				global.logSystem(roomFrom.name, `transfer from ${roomFrom.name} stored ${roomFrom.storage.store['energy']} to ${roomTo.name} stored ${roomTo.storage.store['energy']} is POSSIBLE`);
+
+			}
+		}
+	}
+};
+
+viralUtil.energyCalc = (amount, distance) => {
+	let euler = Math.exp(distance / 30),
+		transActionAmount = (amount * euler) / (2 * euler - 1),
+		transActionCost = (amount * (euler - 1)) / (2 * euler - 1);
+
+
+	console.log(`amount: ${transActionAmount} cost: ${transActionCost}`);
+
 };
 
 
@@ -715,7 +947,7 @@ candidates [
 
 boostTiming {
 
-reactionPlaced:
+
 ordersPlaced:
 reactionMaking:
 checkRoomAt:

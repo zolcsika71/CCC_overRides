@@ -4,54 +4,54 @@ let mod = {};
 
 mod.run = function () {
 
-	if (!GRAFANA || Game.time % GRAFANA_INTERVAL !== 0)
+	if (!global.GRAFANA || Game.time % global.GRAFANA_INTERVAL !== 0)
 		return;
 
 	Memory.stats = {
 		tick: Game.time,
-		empireMinerals: {},
-		empireEnergy: 0,
 		population: Object.keys(Memory.population).length,
+		empireMinerals: {},
+		rooms: [],
+		memory: global.round(RawMemory.get().length / 1024),
+		cpu: Game.cpu,
+		gcl: Game.gcl,
+		market: {
+			credits: Game.market.credits,
+			numOrders: Game.market.orders ? Object.keys(Game.market.orders).length : 0,
+		}
 	};
-
-	Memory.stats.cpu = Game.cpu;
 
 	Memory.stats.cpu.used = Game.cpu.getUsed();
-	Memory.stats.gcl = Game.gcl;
-	Memory.stats.market = {
-		credits: Game.market.credits,
-		numOrders: Game.market.orders ? Object.keys(Game.market.orders).length : 0,
-	};
+
 
 	// ROOMS
-
-	Memory.stats.rooms = {};
 
 	let myRooms = _.filter(Game.rooms, {'my': true});
 
 	for (let room of myRooms) {
-		Memory.stats.rooms[room.name] = {
-			name: room.name,
-			spawns: {},
-			storage: {},
-			terminal: {},
-			minerals: {},
-			sources: {},
-		};
+		// Memory.stats.rooms[room.name] = {
+		// 	name: room.name,
+		// 	spawns: {},
+		// 	storage: {},
+		// 	terminal: {},
+		// 	minerals: {},
+		// 	sources: {},
+		// };
 
-		mod.init(room, Memory.stats.rooms[room.name]);
+		Memory.stats.rooms.push(room.name)
+		mod.init(room);
 	}
 };
 
-mod.init = function (room, object) {
-	mod.controller(room, object);
-	mod.storage(room, object.storage);
+mod.init = function (room) {
+	// mod.controller(room, object);
+	// mod.storage(room, object.storage);
 	mod.empireMineral(room);
-	mod.energy(room, object);
-	mod.spawns(room, object.spawns);
-	mod.terminal(room, object.terminal);
-	mod.minerals(room, object.minerals);
-	mod.sources(room, object.sources);
+	// mod.energy(room, object);
+	// mod.spawns(room, object.spawns);
+	// mod.terminal(room, object.terminal);
+	// mod.minerals(room, object.minerals);
+	// mod.sources(room, object.sources);
 };
 
 mod.controller = function (room, object) {
@@ -81,17 +81,6 @@ mod.empireMineral = function (room) {
 				Memory.stats.empireMinerals[mineral] = 0;
 			Memory.stats.empireMinerals[mineral] += room.resourcesAll[mineral];
 		}
-
-		// for (const mineral in room.storage.store) {
-		// 	if (!Memory.stats.empireMinerals[mineral])
-		// 		Memory.stats.empireMinerals[mineral] = 0;
-		// 	Memory.stats.empireMinerals[mineral] += room.storage.store[mineral];
-		// }
-		// for (const mineral in room.terminal.store) {
-		// 	if (!Memory.stats.empireMinerals[mineral])
-		// 		Memory.stats.empireMinerals[mineral] = 0;
-		// 	Memory.stats.empireMinerals[mineral] += room.terminal.store[mineral];
-		// }
 	}
 };
 

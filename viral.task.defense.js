@@ -10,7 +10,7 @@ mod.register = () => {};
 // When a new invader has been spotted
 mod.handleNewInvader = invaderCreep => {
     // ignore if on blacklist
-    if (!SPAWN_DEFENSE_ON_ATTACK || DEFENSE_BLACKLIST.includes(invaderCreep.pos.roomName)) return;
+    if (!global.SPAWN_DEFENSE_ON_ATTACK || global.DEFENSE_BLACKLIST.includes(invaderCreep.pos.roomName)) return;
     // if not our room and not our reservation
 
     global.logSystem(invaderCreep.pos.roomName, `Hostile Invaders detected`);
@@ -18,10 +18,10 @@ mod.handleNewInvader = invaderCreep => {
     if (!invaderCreep.room.my && !invaderCreep.room.reserved) {
         // if it is not our exploiting target
         let validColor = flagEntry => (
-            (Flag.compare(flagEntry, FLAG_COLOR.invade.exploit)) ||
-            (flagEntry.color == FLAG_COLOR.claim.color)
+            (Flag.compare(flagEntry, global.FLAG_COLOR.invade.exploit)) ||
+            (flagEntry.color === global.FLAG_COLOR.claim.color)
         );
-        let flag = FlagDir.find(validColor, invaderCreep.pos, true);
+        let flag = global.FlagDir.find(validColor, invaderCreep.pos, true);
 
         if (!flag) {
             global.logSystem(invaderCreep.pos.roomName, `Hostile Invaders not in range`);
@@ -36,7 +36,7 @@ mod.handleNewInvader = invaderCreep => {
         global.logSystem(invaderCreep.pos.roomName, `Defense HIGHER than Threat`);
         // room can handle that
         return;
-    } else {
+    } else if (invaderCreep.room.hostileThreatLevel > 0) {
         // order a defender for each invader (if not happened yet)
         global.logSystem(invaderCreep.pos.roomName, `Defense LOWER than Threat`);
         let lastAllocatedGUID = global.guid();
@@ -70,10 +70,11 @@ mod.handleGoneInvader = invaderId => {
         Task.clearMemory('defense', invaderId);
         // other existing creeps will recycle themself via nextAction (see below)
         //if (Game.time % 500 === 0)
-        if (Object.keys(Memory.allocateProperties.lastAllocated).length > 0) {
-            console.log(`${invaderId} unAllocate started for defense`);
-            global.unAllocateCompound('defense');
-        }
+        // TODO unAllocate with new compoundManager
+        // if (Object.keys(Memory.allocateProperties.lastAllocated).length > 0) {
+        //     console.log(`${invaderId} unAllocate started for defense`);
+        //     global.unAllocateCompound('defense');
+        // }
     }
 };
 // when a creep died

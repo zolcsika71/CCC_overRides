@@ -1,15 +1,16 @@
 const mod = {};
 module.exports = mod;
 mod.analyzeRoom = function (room, needMemoryResync) {
+
+	if (Memory.marketOrders && Memory.marketOrders.updated !== Game.time)
+		delete Memory.marketOrders;
+
 	if (Game.time % global.PROCESS_ORDERS_INTERVAL === 0 || room.name === 'sim') {
-		room.updateResourceOrders();
-		let orderingRoom = global.orderingRoom();
-		if ((orderingRoom.length === 1 && room.name !== orderingRoom[0].name) || orderingRoom.length === 0) {
-			//room.garbageCollectStorageOrders();
-			//room.garbageCollectTerminalOrders();
+		if (_.some(acceptedRooms, r => {
+			return r.name === room.name;
+		})) {
+			room.updateResourceOrders();
 			room.updateRoomOrders();
-			// room.cancelTerminalOrderToSell();
-			// room.terminalOrderToSell();
 			room.terminalBroker();
 		}
 	}
@@ -110,7 +111,6 @@ mod.extend = function () {
 				orders.splice(i, 1);
 				i--;
 			} else {
-
 				rooms.sort((a, b) => {
 					return Game.map.getRoomLinearDistance(this.name, a.name, true) - Game.map.getRoomLinearDistance(this.name, b.name, true);
 				});
@@ -132,24 +132,24 @@ mod.extend = function () {
 					// 	room.memory.resources.offers = [];
 
 					let remoteOffers = room.memory.resources.offers;
-					let available = room.resourcesAll[order.type] || 0;
+					let allocatable = room.resourcesAll[order.type] || 0;
 
-					if (available < global.MIN_OFFER_AMOUNT)
+					if (allocatable < global.MIN_OFFER_AMOUNT)
 						continue;
 
-					// for COMPOUNDS_TO_ALLOCATE
-					if (!_.isUndefined(global.COMPOUNDS_TO_ALLOCATE[order.type]) && global.COMPOUNDS_TO_ALLOCATE[order.type].allocate) {
-						let reservedAmount = global.COMPOUNDS_TO_ALLOCATE[order.type].roomThreshold;
-						if (available < reservedAmount + global.MIN_OFFER_AMOUNT)
+					// for COMPOUNDS_MANAGE
+					if (global.isCompoundToManage(order.type)) {
+						let roomThreshold = Memory.compoundsManage[order.type].roomThreshold;
+						if (allocatable < roomThreshold + global.MIN_OFFER_AMOUNT)
 							continue;
 						else
-							available = available - reservedAmount;
+							allocatable = allocatable - roomThreshold;
 					}
 
 					if (amountRemaining < global.MIN_OFFER_AMOUNT && amountRemaining > 0)
 						amountRemaining = global.MIN_OFFER_AMOUNT;
 
-					available = Math.min(available, amountRemaining);
+					allocatable = Math.min(allocatable, amountRemaining);
 
 					let existingOffer = order.offers.find(o => {
 						return o.room === room.name;
@@ -159,32 +159,38 @@ mod.extend = function () {
 					});
 					if (existingOffer) {
 						if (global.DEBUG && global.TRACE)
-							global.trace('Room', {roomName: this.name, remoteRoom: room.name, actionName: 'updateRoomOrders', subAction: 'update', orderId: order.id, resourceType: order.type, amount: available});
-						amountRemaining -= (available - existingOffer.amount);
-						existingOffer.amount = available;
+							global.trace('Room', {roomName: this.name, remoteRoom: room.name, actionName: 'updateRoomOrders', subAction: 'update', orderId: order.id, resourceType: order.type, amount: allocatable});
+						amountRemaining -= (allocatable - existingOffer.amount);
+						existingOffer.amount = allocatable;
+						// room.fillARoomOrder();
 					} else {
 						if (global.DEBUG && global.TRACE)
-							global.trace('Room', {roomName: this.name, remoteRoom: room.name, actionName: 'updateRoomOrders', subAction: 'new', orderId: order.id, resourceType: order.type, amount: available});
+							global.trace('Room', {roomName: this.name, remoteRoom: room.name, actionName: 'updateRoomOrders', subAction: 'new', orderId: order.id, resourceType: order.type, amount: allocatable});
 						if (global.DEBUG)
-							global.logSystem(this.name, `Room offer from ${room.name} with id ${order.id} placed for ${available} ${order.type}.`);
-						amountRemaining -= available;
+							global.logSystem(this.name, `Room offer from ${room.name} with id ${order.id} placed for ${allocatable} ${order.type}.`);
+						amountRemaining -= allocatable;
 						order.offers.push({
 							room: room.name,
-							amount: available,
+							amount: allocatable,
 						});
+						// room.fillARoomOrder();
 					}
 					if (existingRemoteOffer) {
-						existingRemoteOffer.amount = available;
+						existingRemoteOffer.amount = allocatable;
 					} else {
 						remoteOffers.push({
 							room: this.name,
 							id: order.id,
 							type: order.type,
-							amount: available,
+							amount: allocatable,
 						});
+						// room.fillARoomOrder();
 					}
-					if (amountRemaining <= 0)
+
+					if (amountRemaining <= 0) {
+						// room.fillARoomOrder();
 						break;
+					}
 				}
 			}
 		}
@@ -195,8 +201,8 @@ mod.extend = function () {
 			return false;
 
 		let offers = this.memory.resources.offers,
-			ret = false,
-			retSend = false;
+			ret,
+			retSend;
 
 		for (let i = 0; i < offers.length; i++) {
 
@@ -216,6 +222,7 @@ mod.extend = function () {
 			let targetOfferIdx = order.offers.findIndex((o) => {
 				return o.room === this.name;
 			});
+
 			if (targetOfferIdx === -1) {
 				global.logSystem(this.name, 'Orphaned offer found and deleted');
 				offers.splice(i--, 1);
@@ -231,7 +238,9 @@ mod.extend = function () {
 				});
 			if (terminalOrder)
 				onOrder = terminalOrder.orderRemaining;
+
 			let amount = Math.max(offer.amount, global.MIN_OFFER_AMOUNT);
+
 			if (amount > (store + onOrder)) {
 				let amt = amount - (store + onOrder);
 				if (global.DEBUG && global.TRACE)
@@ -434,7 +443,6 @@ mod.extend = function () {
 		if (ret !== OK) {
 			return ret;
 		}
-		let resourcesAll;
 
 		let containerData = this.memory.resources[container.structureType].find((s) => s.id === containerId);
 
@@ -443,47 +451,52 @@ mod.extend = function () {
 			let containerStore;
 
 			if (container.structureType === STRUCTURE_LAB) {
-				containerStore = (container.mineralType === resourceType) ? container.mineralAmount : 0;
+				containerStore = (container.mineralType === resourceType) ? container.store[container.mineralType] : 0;
 			} else {
 				containerStore = container.store[resourceType] || 0;
 			}
 
 			let orderAmount = amount - containerStore;
-			if (container.structureType === STRUCTURE_TERMINAL)
-				resourcesAll = (this.resourcesAll[resourceType] || 0) + (this.resourcesOffers[resourceType] || 0);
-			else
-				resourcesAll = this.resourcesAll[resourceType] || 0;
 
-			global.logSystem(this.name, `orderAmount: ${orderAmount} resourcesAll: ${resourcesAll} ${resourceType}`);
+			let resourcesAll = this.resourcesAll[resourceType] || 0;
 
-			if (existingOrder && (orderAmount <= resourcesAll)) {
+			// if (container.structureType === STRUCTURE_TERMINAL)
+			// 	resourcesAll = (this.resourcesAll[resourceType] || 0) + (this.resourcesOffers[resourceType] || 0);
+			// else
+			// 	resourcesAll = this.resourcesAll[resourceType] || 0;
+
+
+			global.logSystem(this.name, `amount: ${amount} orderAmount: ${orderAmount} resourcesAll: ${resourcesAll} ${resourceType}`);
+
+			if (existingOrder) {
 				global.logSystem(this.name, `order already exist:`);
 
 				if (orderAmount > 0) {
-					existingOrder.orderAmount = orderAmount;
-					existingOrder.orderRemaining = orderAmount;
+					existingOrder.orderAmount += orderAmount;
+					existingOrder.orderRemaining += orderAmount;
 				}
 				global.BB(existingOrder);
 
-			} else if (orderAmount <= resourcesAll) {
-				global.logSystem(this.name, `new order placed: ${orderAmount} ${resourceType}`);
-				containerData.orders.push({
-					type: resourceType,
-					orderAmount: orderAmount,
-					orderRemaining: orderAmount,
-					storeAmount: 0,
-				});
-				// global.BB(containerData.orders);
-				// if (container.structureType === STRUCTURE_LAB && containerData.reactionState !== 'Storage') {
-				// 	containerData.reactionType = resourceType;
-				// }
-
 			} else {
-				this.memory.resources[container.structureType].orders = []
-				// this.cancelOrder(containerId, resourceType);
-				return ERR_NOT_ENOUGH_RESOURCES;
-			}
+				global.logSystem(this.name, `new order placed: ${orderAmount} ${resourceType}`);
+				if (orderAmount > 0) {
+					containerData.orders.push({
+						type: resourceType,
+						orderAmount: orderAmount,
+						orderRemaining: orderAmount,
+						storeAmount: 0,
+					});
+					// global.BB(containerData.orders);
+					// if (container.structureType === STRUCTURE_LAB && containerData.reactionState !== 'Storage') {
+					// 	containerData.isMainCompoundAllocateble = resourceType;
+					// }
+				}
 
+
+			}
+			// this.memory.resources[container.structureType].orders = []
+			// this.cancelOrder(containerId, resourceType);
+			// return ERR_NOT_ENOUGH_RESOURCES;
 		}
 		return OK;
 	};
@@ -581,7 +594,7 @@ mod.extend = function () {
 			// update existing order
 			if (global.DEBUG && global.TRACE)
 				global.trace('Room', {roomName: this.name, actionName: 'placeRoomOrder', subAction: 'update', orderId: orderId, resourceType: resourceType, amount: amount});
-			existingOrder.amount = amount;
+			existingOrder.amount += amount;
 
 		} else {
 			// create new order
@@ -601,442 +614,101 @@ mod.extend = function () {
 
 	Room.prototype.terminalBroker = function () {
 
-		if (!this.my || !this.terminal || !this.storage) return;
-		if (this.terminal.cooldown && this.terminal.cooldown > 0) return;
+		global.logSystem(this.name, `TERMINAL BROKER FOR: ${this.name}`);
 
-		if (!Memory.numberOfTransactions)
-			Memory.numberOfTransactions = {};
 
-		let numberOfTransactions = Memory.numberOfTransactions;
+		if (this.terminal.cooldown && this.terminal.cooldown > 0)
+			return;
 
-		if (numberOfTransactions.time !== Game.time) {
-			numberOfTransactions.count = 0;
-			numberOfTransactions.time = Game.time;
-		}
-
-		let that = this;
-		let order;
+		// let that = this;
 		let transacting = false;
-		let terminalFull = (this.terminal.sum / this.terminal.store.getCapacity()) > global.TARGET_STORAGE_SUM_RATIO;
-		let storageFull = (this.storage.sum / this.storage.store.getCapacity()) > global.TARGET_STORAGE_SUM_RATIO;
 
-		//global.logSystem(this.name, `chargeScale: ${Util.chargeScale(this.storage.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT, MIN_STORAGE_ENERGY[this.controller.level], MAX_STORAGE_ENERGY[this.controller.level])}`);
 
-		// new 1
-		// if (this.controller.level === 8
-		// 	&& Util.chargeScale(this.storage.store.energy - global.ENERGY_BALANCE_TRANSFER_AMOUNT,
-		// 		global.MIN_STORAGE_ENERGY[this.controller.level],
-		// 		global.MAX_STORAGE_ENERGY[this.controller.level]) > 1
-		// 	// && (this.terminal.store[this.mineralType] || 0) < 150000
-		// 	&& this.terminal.store.energy > (global.ENERGY_BALANCE_TRANSFER_AMOUNT * 1.1)) {
-		// 	console.log(`${this.name} can transfer energy`);
-		// 	let requiresEnergy = _.filter(Game.rooms, room => {
-		// 		if (room.my && room.storage && room.terminal &&
-		// 			room.terminal.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO < (room.terminal.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT) &&
-		// 			room.storage.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO < (room.storage.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT) &&
-		// 			!room._isReceivingEnergy &&
-		// 			room.storage.store[RESOURCE_ENERGY] < global.MAX_STORAGE_ENERGY[room.controller.level])
-		// 		{
-		// 			return true;
-		// 		}
-		//
-		//
-		// 	})
-		//
-		// 	console.log(`room requires energy: ${requiresEnergy}`);
-		//
-		// 	let targetRoom = _.min(requiresEnergy.storage.store.energy, 'storage.store.energy');
-		// 	console.log(`requiresEnergy: ${targetRoom}`);
-		// 	console.log(`${targetRoom} is found`);
-		// 	console.log(`room instance: ${targetRoom instanceof Room} && transaction cost: ${Game.market.calcTransactionCost(ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name) < (this.terminal.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT)}`);
-		// 	console.log(`cost: ${Game.market.calcTransactionCost(ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name)} < terminal energy remains: ${this.terminal.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT}`);
-		//
-		// 	if (targetRoom instanceof Room
-		// 		&& Game.market.calcTransactionCost(global.ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name) < (this.terminal.store.energy - global.ENERGY_BALANCE_TRANSFER_AMOUNT)) {
-		// 		let response = this.terminal.send('energy', global.ENERGY_BALANCE_TRANSFER_AMOUNT, targetRoom.name, 'have fun');
-		// 		if (global.DEBUG)
-		// 			logSystem(that.name, `Transferring ${global.formatNumber(global.ENERGY_BALANCE_TRANSFER_AMOUNT)} energy to ${targetRoom.name}: ${global.translateErrorCode(response)}`);
-		// 		transacting = response === OK;
-		// 		if (transacting)
-		// 			targetRoom._isReceivingEnergy = true;
-		// 	}
-		// }
+		let charge = global.Util.chargeScale(this.storage.store.energy - global.ENERGY_BALANCE_TRANSFER_AMOUNT,
+			global.MIN_STORAGE_ENERGY[this.controller.level],
+			global.MAX_STORAGE_ENERGY[this.controller.level]);
 
-		// new 2
-		// if (this.controller.level === 8
-		// 	&& Util.chargeScale(this.storage.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT,
-		// 		MIN_STORAGE_ENERGY[this.controller.level],
-		// 		MAX_STORAGE_ENERGY[this.controller.level]) > 1
-		// 	// && (this.terminal.store[this.mineralType] || 0) < 150000
-		// 	&& this.terminal.store.energy > (ENERGY_BALANCE_TRANSFER_AMOUNT * 1.1)) {
-		// 	//console.log(`${this.name} can transfer energy`);
-		// 	let requiresEnergy = _.filter(Game.rooms, room => {
-		// 			return room.my && room.storage && room.terminal &&
-		// 				room.terminal.store.getCapacity() < (room.terminal.sum + ENERGY_BALANCE_TRANSFER_AMOUNT) * TARGET_STORAGE_SUM_RATIO &&
-		// 				room.storage.store.getCapacity() < (room.storage.sum + ENERGY_BALANCE_TRANSFER_AMOUNT) * TARGET_STORAGE_SUM_RATIO &&
-		// 				!room._isReceivingEnergy &&
-		// 				room.storage.store[RESOURCE_ENERGY] < MAX_STORAGE_ENERGY[room.controller.level]
-		// 	});
-		//
-		//
-		//
-		// 	console.log(`targetRooms: ${requiresEnergy}`);
-		//
-		// 	let targetRoom = _.min(_.filter(Game.rooms, requiresEnergy), 'storage.store.energy');
-		//
-		// 	/*
-		// 	console.log(`requiresEnergy: ${_.filter(Game.rooms, requiresEnergy)}`);
-		// 	console.log(`${targetRoom} is found`);
-		// 	console.log(`room instance: ${targetRoom instanceof Room} && transaction cost: ${Game.market.calcTransactionCost(ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name) < (this.terminal.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT)}`);
-		// 	console.log(`cost: ${Game.market.calcTransactionCost(ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name)} < terminal energy remains: ${this.terminal.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT}`);
-		//
-		// 	 */
-		//
-		//
-		//
-		// 	if (targetRoom instanceof Room
-		// 		&& Game.market.calcTransactionCost(ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name)
-		// 		< (this.terminal.store.energy - ENERGY_BALANCE_TRANSFER_AMOUNT)) {
-		//
-		// 		let response = this.terminal.send('energy', ENERGY_BALANCE_TRANSFER_AMOUNT, targetRoom.name, 'have fun');
-		// 		if (global.DEBUG)
-		// 			logSystem(that.name, `Transferring ${Util.formatNumber(ENERGY_BALANCE_TRANSFER_AMOUNT)} energy to ${targetRoom.name}: ${translateErrorCode(response)}`);
-		// 		transacting = response === OK;
-		// 		if (transacting)
-		// 			targetRoom._isReceivingEnergy = true;
-		//
-		// 		// console.log(`targetRoom: ${targetRoom} instance: ${targetRoom instanceof Room}`);
-		// 	}
-		// }
+		global.logSystem(this.name, `energy stored: ${this.storage.store.energy} chargeScale: ${global.round(charge, 3)}`);
 
-		// old
-		if (this.controller.level === 8 && !transacting &&
-			Util.chargeScale(this.storage.store.energy - global.ENERGY_BALANCE_TRANSFER_AMOUNT,
-				global.MIN_STORAGE_ENERGY[this.controller.level],
-				global.MAX_STORAGE_ENERGY[this.controller.level]) > 1 &&
-			(this.terminal.store[this.mineralType] || 0) < 150000 &&
-			this.terminal.store.energy > (global.ENERGY_BALANCE_TRANSFER_AMOUNT * 1.1)) {
+		if (this.controller.level === 8 && charge > 1 && this.terminal.store.energy > global.ENERGY_BALANCE_TRANSFER_AMOUNT * 1.1) {
+
+			global.logSystem(this.name, `can transfer energy`);
+
 			let requiresEnergy = room => (
-				room.my && room.storage && room.terminal &&
-				room.terminal.sum < room.terminal.store.getCapacity() - global.ENERGY_BALANCE_TRANSFER_AMOUNT &&
-				room.storage.sum < room.storage.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO &&
+				room.terminal.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO > room.terminal.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT &&
+				room.storage.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO > room.storage.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT &&
 				!room._isReceivingEnergy &&
-				room.storage.store[RESOURCE_ENERGY] < global.MAX_STORAGE_ENERGY[room.controller.level]
+				room.storage.store[RESOURCE_ENERGY] < global.MAX_STORAGE_ENERGY[room.controller.level] + global.TERMINAL_ENERGY - room.terminal.store.energy
 			);
-			let targetRoom = _.min(_.filter(Game.rooms, requiresEnergy), 'storage.store.energy');
+
+			let targetRoom = _.min(_.filter(global.acceptedRooms, requiresEnergy), 'storage.store.energy');
+
 			if (targetRoom instanceof Room
 				&& Game.market.calcTransactionCost(global.ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name) < (this.terminal.store.energy - global.ENERGY_BALANCE_TRANSFER_AMOUNT)) {
+				global.logSystem(this.name, `TARGET_ROOM: ${targetRoom.name}`);
 				targetRoom._isReceivingEnergy = true;
 				let response = this.terminal.send('energy', global.ENERGY_BALANCE_TRANSFER_AMOUNT, targetRoom.name, 'have fun');
 				if (global.DEBUG)
-					logSystem(that.name, `Transferring ${Util.formatNumber(global.ENERGY_BALANCE_TRANSFER_AMOUNT)} energy to ${targetRoom.name}: ${translateErrorCode(response)}`);
+					global.logSystem(this.name, `Transferring ${global.Util.formatNumber(global.ENERGY_BALANCE_TRANSFER_AMOUNT)} energy to ${targetRoom.name}: ${global.translateErrorCode(response)}`);
 				transacting = response === OK;
+			} else {
+				global.logSystem(this.name, `NO ENERGY TRANSFER`);
 			}
 		}
 
-
-		if (this.controller.level === 8 || global.MARKET_SELL_NOT_RCL8_ROOMS || terminalFull || storageFull) {
-
-			let data = this.memory.resources,
-				numberOfOrders = Object.keys(Game.market.orders).length,
-				returnValue,
-				cloakedMinerals = function (mineral) {
-					// TODO count unnecessary amount
-
-					if (_.isUndefined(data))
-						return false;
-
-					//global.logSystem(that.name, `not selling mineral: ${!TERMINAL_BROKER_SELL_ENERGY && mineral === 'energy'} mineral: ${mineral}`);
-
-					if (!TERMINAL_BROKER_SELL_ENERGY && mineral === 'energy')
-						return true;
-
-					if (mineral === RESOURCE_POWER)
-						return true;
-
-
-					let offerMineral = _.some(data.offers, offer => {
-							return offer.type === mineral && offer.amount > 0;
-						}),
-						orderMineral = _.some(data.orders, order => {
-							return order.type === mineral && order.amount > 0;
-						}),
-						reactionMineral = function (mineral) {
-
-							let component_a,
-								component_b;
-
-							if (data.reactions.orders.length > 0) {
-								component_a = LAB_REACTIONS[data.reactions.orders[0].type][0];
-								component_b = LAB_REACTIONS[data.reactions.orders[0].type][1];
-							}
-
-							return mineral === component_a || mineral === component_b;
-
-
-						};
-
-					return offerMineral || orderMineral || reactionMineral(mineral);
-
-				},
-				makeSellOrder = function (mineral) {
-					let mineralSellOrders = global._sellOrders(mineral),
-						mineralBuyOrders = global._buyOrders(mineral),
-						mySellOrders = _.filter(mineralSellOrders, order => {
-							return Game.rooms[order.roomName] ? Game.rooms[order.roomName].my : false;
-						}),
-						otherOrders = _.filter(mineralSellOrders, order => {
-							return Game.rooms[order.roomName] ? !Game.rooms[order.roomName].my : true;
-						}),
-						sellOrderExists = mySellOrders.length > 0 && _.some(mySellOrders, {roomName: that.name}),
-						amount = function (mineral) {
-							if (that.terminal.store[mineral] >= global.DEFAULT_COMPOUND_SELL_AMOUNT)
-								return global.DEFAULT_COMPOUND_SELL_AMOUNT;
-							else
-								return that.terminal.store[mineral] >= global.MIN_COMPOUND_SELL_AMOUNT ? that.terminal.store[mineral] : 0;
-						},
-						changePrice = function (price) {
-
-							let returnValue,
-								wrongSellOrders = _.filter(mySellOrders, order => {
-									return order.price !== price && order.roomName === that.name;
-								});
-
-							if (wrongSellOrders.length > 0) {
-								for (let order of wrongSellOrders) {
-									global.logSystem(that.name, `new urgent sell order needed for resourceType: ${order.resourceType} currentPrice: ${order.price} newPrice: ${price}`);
-									returnValue = Game.market.changeOrderPrice(order.id, price);
-								}
-							}
-
-							if (returnValue === OK)
-								global.logSystem(that.name, `sell order price changes success`);
-							else if (!_.isUndefined(returnValue))
-								global.logSystem(that.name, `sell order price changes fail => errorCode: ${returnValue}`);
-
-						},
-						makeOrder = function (mineral, price, sellAmount) {
-
-							global.logSystem('number of orders:', `${numberOfOrders}`);
-
-							returnValue = Game.market.createOrder(ORDER_SELL, mineral, price, sellAmount, that.name);
-							if (returnValue === OK) {
-								global.logSystem(that.name, `sell order ${numberOfOrders}. created for => resourceType: ${mineral} price: ${price} totalAmount: ${sellAmount}`);
-								numberOfOrders++;
-							} else if (!_.isUndefined(returnValue))
-								global.logSystem(that.name, `sell order ${numberOfOrders}. FAILED for => resourceType: ${mineral} price: ${price} totalAmount: ${sellAmount} errorCode: ${global.translateErrorCode(returnValue)}`);
-
-							return returnValue;
-
-						},
-						setOrders = function (price, sellAmount) {
-
-							if (sellOrderExists)
-								changePrice(price);
-							else if (numberOfOrders < 50)
-								returnValue = makeOrder(mineral, price, sellAmount);
-							else
-								returnValue = 'tooMuch';
-
-							return returnValue;
-						},
-						sellAmount = amount(mineral),
-						terminalOrderCompleted = global.sumCompoundType(data.terminal[0].orders, 'orderRemaining')[mineral] <= 0;
-
-
-					if (terminalOrderCompleted && sellAmount > 0) {
-
-						let minPrice,
-							averagePrice,
-							buyOrders,
-							buyOrder,
-							returnCode,
-							returnValue;
-
-						global.logSystem(that.name, `mineral ${global.SELL_COMPOUND[mineral]}`);
-
-						if (global.SELL_COMPOUND[mineral].urgent) {
-
-							if (otherOrders.length > 0)
-								minPrice = _.round(_.min(otherOrders, 'price').price - 0.001, 3);
-							else
-								minPrice = global.SELL_COMPOUND[mineral].defaultPrice;
-
-							minPrice = minPrice <= 0 ? 0.001 : minPrice;
-
-							// check if there is a buyOrder for this price
-							buyOrders = _.filter(mineralBuyOrders, order => {
-								return order.price >= minPrice;
-							});
-
-							if (buyOrders.length > 0 && numberOfTransactions.count < 10) {
-								buyOrder = _.max(buyOrders, 'price');
-								global.logSystem(that.name, `buyOrder found at ${buyOrder.price} for ${mineral} minPrice: ${minPrice}`);
-								returnCode = Game.market.deal(buyOrder.id, Math.min(sellAmount, buyOrder.amount), that.name);
-								global.logSystem(that.name, `deal: ${global.translateErrorCode(returnCode)}`);
-
-								if (returnCode === OK)
-									numberOfTransactions.count++;
-
-							} else
-								returnValue = setOrders(minPrice, sellAmount);
-
-							return returnValue;
-
-						} else {
-
-							if (otherOrders)
-								averagePrice = _.round(_.sum(otherOrders, 'price') / otherOrders.length, 3);
-							else
-								averagePrice = global.SELL_COMPOUND[mineral].defaultPrice;
-
-							returnValue = setOrders(averagePrice, sellAmount);
-
-							return returnValue;
-						}
-					} else if (!terminalOrderCompleted)
-						return false;
-					else if (sellAmount === 0)
-						return 'sellAmount';
-
-				};
+		// we want to sell
+		if ((this.controller.level === 8 || global.MARKET_SELL_NOT_RCL8_ROOMS) && !transacting && global.TERMINAL_BROKER_SELL) {
 
 			for (const mineral in this.terminal.store) {
 
-				// global.logSystem(that.name, `mineral: ${mineral} cloaked: ${cloakedMinerals(mineral)}`);
-				// global.logSystem(that.name, `transaction count: ${numberOfTransactions.count},  NOT transacting: ${!transacting}`);
-				// global.logSystem(that.name, `compound sell: ${global.SELL_COMPOUND[mineral] && global.SELL_COMPOUND[mineral].sell && this.terminal.store[mineral] >= global.MIN_COMPOUND_SELL_AMOUNT && numberOfTransactions.count <= 10 && !transacting}`);
+				let sell = false;
 
-				if (transacting || cloakedMinerals(mineral))
-					continue;
-
-				/*if (global.SELL_COMPOUND[mineral] && global.SELL_COMPOUND[mineral].sell) {
-
-
-
-					global.logSystem(this.name, `trying to make sell order for ${mineral}`);
-
-					let returnValue = makeSellOrder(mineral);
-
-					if (returnValue === OK)
-						global.logSystem(this.name, `making sell order for ${this.terminal.store[mineral]} ${mineral} success`);
-					else if (returnValue === undefined)
-						global.logSystem(this.name, `sell order for ${mineral} already exists`);
-					else if (returnValue === false)
-						global.logSystem(this.name, `terminal order not completed for ${mineral} yet`);
-					else if (returnValue === 'sellAmount') {
-						global.logSystem(this.name, `not enough ${mineral} for sell, deleting terminal order`);
-						data.terminal[0].orders = _.filter(data.terminal[0].orders, order => {
-							return order.type !== mineral;
-						})
-					} else if (returnValue === 'tooMuch') {
-						global.logSystem(that.name, `orders: ${numberOfOrders} returnValue: ${returnValue} - can not make more`);
-					}
-
-
-
-
-				}
-			  */
-
-				if (numberOfTransactions.count < 10 && !transacting && (
-					(mineral === this.memory.mineralType
-						&& this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)
-					|| (mineral === RESOURCE_ENERGY
-						&& this.storage.store[RESOURCE_ENERGY] >= global.MAX_STORAGE_ENERGY[8] * 1.2
-						&& this.terminal.store[RESOURCE_ENERGY] >= global.TERMINAL_ENERGY * 0.8)
-					|| (mineral !== this.memory.mineralType
-						&& mineral !== RESOURCE_ENERGY
-						&& mineral !== 'G'
-						&& this.terminal.store[mineral] >= global.MIN_MINERAL_SELL_AMOUNT)
-					|| (global.SELL_COMPOUND[mineral]
-						&& global.SELL_COMPOUND[mineral].sell
-						&& this.terminal.store[mineral] >= global.MIN_COMPOUND_SELL_AMOUNT)
-				)) {
-
-					global.logSystem(that.name, `mineral selling ongoing: ${mineral}`);
-
-					let orders = _.filter(global._buyOrders(mineral), o => {
-
-						if (!o.roomName)
-							return false;
-
-						if (o.resourceType !== RESOURCE_ENERGY && o.amount < global.MIN_MINERAL_SELL_AMOUNT)
-							return false;
-
-						if (o.resourceType === RESOURCE_ENERGY && o.amount < global.MIN_ENERGY_SELL_AMOUNT)
-							return false;
-
-						//o.range = Game.map.getRoomLinearDistance(o.roomName, that.name, true);
-
-						o.transactionAmount = Math.min(o.amount, that.terminal.store[mineral]);
-						o.transactionCost = Game.market.calcTransactionCost(
-							o.transactionAmount,
-							that.name,
-							o.roomName);
-
-						if (o.transactionCost > that.terminal.store.energy && o.transactionAmount > global.MIN_MINERAL_SELL_AMOUNT && mineral !== RESOURCE_ENERGY) {
-							// cant afford. try min amount
-							o.transactionAmount = global.MIN_MINERAL_SELL_AMOUNT;
-
-							o.transactionCost = Game.market.calcTransactionCost(
-								o.transactionAmount,
-								that.name,
-								o.roomName);
-						}
-						if (o.transactionCost > (that.terminal.store.energy - o.transactionAmount) && o.transactionAmount > global.MIN_ENERGY_SELL_AMOUNT && mineral === RESOURCE_ENERGY) {
-							// cant afford. try min amount
-							o.transactionAmount = global.MIN_ENERGY_SELL_AMOUNT;
-
-							o.transactionCost = Game.market.calcTransactionCost(
-								o.transactionAmount,
-								that.name,
-								o.roomName);
-						}
-
-						o.credits = o.transactionAmount * o.price;
-						o.ratio = (o.credits - (o.transactionCost * global.ENERGY_VALUE_CREDITS)) / o.transactionAmount; // best offer assuming 1e == ENERGY_VALUE_CREDITS credits
-
-
-						if (mineral !== RESOURCE_ENERGY)
-							returnValue = o.transactionCost <= that.terminal.store.energy;
-						else
-							returnValue = o.transactionCost <= that.terminal.store.energy + o.transactionAmount;
-
-						return returnValue;
-					});
-
-					if (orders && orders.length > 0) {
-						global.logSystem(this.name, `no.: ${numberOfTransactions.count} ${this.name} selling: ${mineral} terminalFull: ${terminalFull} storageFull: ${storageFull}`);
-						order = _.max(orders, 'ratio');
-						if (global.DEBUG) {
-							//for (let o of orders)
-							//    console.log(`id: ${o.id} ratio: ${global.roundUp(o.ratio, 4)} price: ${o.price} credit: ${global.roundUp(o.credits / o.transactionAmount, 4)} range: ${o.range}`);
-
-							global.logSystem(this.name, 'selected order: ');
-							global.logSystem(this.name, `id: ${order.id} ratio: ${global.roundUp(order.ratio, 4)} price: ${order.price} credit: ${global.roundUp(order.credits / order.transactionAmount, 4)}`);
-						}
-						let result = Game.market.deal(order.id, order.transactionAmount, this.name);
-						if (global.DEBUG || global.SELL_NOTIFICATION)
-							global.logSystem(this.name, `Selling ${order.transactionAmount} ${mineral} for ${global.roundUp(order.credits)} (${order.price} ¢/${mineral}, ${order.transactionCost} report: ${global.translateErrorCode(result)}`);
-						if (SELL_NOTIFICATION) Game.notify(`<h2>Room ${this.name} executed an order!</h2><br/>Result: ${translateErrorCode(result)}<br/>Details:<br/>${JSON.stringify(order).replace(',', ',<br/>')}`);
-						if (result === OK && Memory.numberOfTransactions.time === Game.time)
-							numberOfTransactions.count++;
-						transacting = result === OK;
-						//break;
-					} else {
-						// global.logSystem(this.name, `No order found for ${mineral}`);
-					}
+				// ENERGY
+				if (mineral === RESOURCE_ENERGY && global.TERMINAL_BROKER_SELL_ENERGY) {
+					sell = true;
+					// ROOM MINERAL
+				} else if (mineral === this.mineralType) {
+					if (this.resourcesAll[mineral] > global.MAX_STORAGE_MINERAL)
+						sell = true;
+					// COMPOUND
+				} else if (global.isCompoundToManage(mineral)) {
+					if (Memory.compoundsManage[mineral].sell
+						&& this.resourcesAll[mineral] > Memory.compoundsManage[mineral].roomThreshold + Memory.compoundsManage[mineral].reservedAmount)
+						sell = true;
+					// OTHER
 				} else {
-					// global.logSystem(this.name, `Can NOT sell ${mineral}`);
+					if (this.resourcesAll[mineral] > global.MAX_STORAGE_NOT_ROOM_MINERAL && mineral !== RESOURCE_ENERGY)
+						sell = true;
 				}
-			}
 
+				let terminalStored = global.round(((this.terminal.store[mineral] || 0) - (this.resourcesOffers[mineral] || 0) - (this.resourcesReactions[mineral] || 0)) * global.TARGET_STORAGE_SUM_RATIO);
 
-			if (!transacting && !(global.MAKE_COMPOUNDS || global.ALLOCATE_COMPOUNDS)) {
-				transacting = this.fillARoomOrder();
-				if (transacting !== true)
-					transacting = false;
+				if (terminalStored > global.MIN_OFFER_AMOUNT && sell) {
+
+					global.logSystem(this.name, `trying to sell: ${terminalStored} ${mineral}`);
+
+					let order = global.bestMarketOrder(this.name, terminalStored, mineral, ORDER_BUY);// we want to sell
+
+					if (!order) {
+
+						global.logSystem(this.name, `No order found for ${mineral}`);
+
+					} else {
+
+						let result = Game.market.deal(order.id, order.transactionAmount, this.name);
+
+						global.logSystem(this.name, `Selling ${order.transactionAmount} ${order.resourceType} for ${global.round(order.credits)} -> (${order.price}¢/${mineral}, energyCost: ${order.transactionCost} energyPrice: ${global.round(order.transactionPrice)}¢ report: ${global.translateErrorCode(result)})`);
+
+						if (result === OK) {
+							Memory.marketOrders.completedDeal++;
+							global.logSystem(this.name, `Selling successfully done`);
+							global.logSystem(this.name, `id: ${order.id} -> ${order.transactionAmount} ${order.resourceType} -> (ratio: ${global.round(order.ratio, 4)} income: ${global.round(order.credits - order.transactionPrice)}¢)`);
+							global.logSystem(this.name, `completed: ${Memory.marketOrders.completedDeal}`);
+							global.updateMarketOrders(order.id, order.transactionAmount, mineral, ORDER_BUY); // we want to sell
+							break;
+						}
+					}
+				}
 			}
 		}
 	};
@@ -1056,7 +728,7 @@ mod.extend = function () {
 
 			if (mineral !== RESOURCE_ENERGY && mineral !== RESOURCE_POWER) {
 
-				let freeSpace = global.MAX_STORAGE_TERMINAL - global.TERMINAL_ENERGY + that.terminal.store[RESOURCE_ENERGY] - _.sum(that.terminal.store) - (resources.terminal[0].orders.length > 0 ?
+				let freeSpace = global.MAX_TERMINAL_MINERAL - global.TERMINAL_ENERGY + that.terminal.store[RESOURCE_ENERGY] - _.sum(that.terminal.store) - (resources.terminal[0].orders.length > 0 ?
 						_.sum(resources.terminal[0].orders, order => {
 							return order.orderRemaining;
 						}) : 0),
