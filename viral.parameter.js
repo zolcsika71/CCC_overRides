@@ -274,7 +274,8 @@ let mod = {
 		DRIVE_BY_BUILD_ALL: false, // If REMOTE_HAULER.DRIVE_BY_BUILDING is enabled then this option will allow remote haulers will drive-by-build any of your structures.
 		DRIVE_BY_BUILD_RANGE: 1, // A creep's max build distance is 3 but cpu can be saved by dropping the search distance to 1.
 		DRIVE_BY_BUILDING: true, // Allows remote haulers to build roads and containers. Consider setting REMOTE_WORKER_MULTIPLIER to 0.
-		DRIVE_BY_REPAIR_RANGE: 0, // range that remote haulers should search when trying to repair and move
+		DRIVE_BY_REPAIR_RANGE: 1, // range that remote haulers should search when trying to repair and move
+		DRIVE_BY_REPAIR_RANGE_ROAD: 0,
 		MIN_LOAD: 0.75, // Haulers will return home as long as their ratio of carrying/capacity is above this amount.
 		MIN_WEIGHT: 800, // Small haulers are a CPU drain.
 		MULTIPLIER: 4, // Max number of haulers spawned per source in a remote mining room.
@@ -284,8 +285,9 @@ let mod = {
 	REMOTE_RESERVE_HAUL_CAPACITY: 0.1, // Percent of allocated haul capacity before sending reservers.
 	PIONEER_UNOWNED: false, // True: pioneers may attempt to work in unowned rooms.
 	PRIVATEERS_BUILD: true, // True: robbers may attempt to build
-	DRIVE_BY_REPAIR_RANGE: 0, // range that creeps should search when trying to repair and move
-	REMOTE_WORKER_MULTIPLIER: 1, // Number of workers spawned per remote mining room.
+	DRIVE_BY_REPAIR_RANGE: 1, // range that creeps should search when trying to repair and move
+	DRIVE_BY_REPAIR_RANGE_ROAD: 0,
+	REMOTE_WORKER_MULTIPLIER: 0, // Number of workers spawned per remote mining room.
 	PLAYER_WHITELIST: ['Geir1983', 'admon', 'likeafox', 'Orlet', 'omnomwombat'],
 	// Don't attack. Must be a member of CCC for permanent whitelisting in git repository. But you can change your own copy... Please ask if you are interested in joining CCC :)
 	DEFENSE_BLACKLIST: [], // Don't defend those rooms (add room names). Blocks spawning via defense task (will not prevent offensive actions at all)
