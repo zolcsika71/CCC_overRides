@@ -551,6 +551,7 @@ let mod = {
 	COMPOUNDS_MANAGE_ENABLED: false,
 	TERMINAL_BROKER_SELL: true,
 	TERMINAL_BROKER_SELL_ENERGY: true, // false for testing terminalBroker or reserve energy
+	TERMINAL_BROKER_TRANSFER_ENERGY: true,
 	COMPOUNDS_MANAGE_BUCKET: 5000,
 	PROCESS_ORDERS_INTERVAL: 249, // interval to process room orders and run terminalBroker
 	COMPOUNDS_MANAGE_TIMING: 5,

@@ -635,9 +635,9 @@ mod.extend = function () {
 			global.logSystem(this.name, `can transfer energy`);
 
 			let requiresEnergy = room => (
-				global.terminalCapacity * global.TARGET_STORAGE_SUM_RATIO > room.terminal.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT &&
-				global.storageCapacity * global.TARGET_STORAGE_SUM_RATIO > room.storage.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT &&
-				!room._isReceivingEnergy
+				global.terminalCapacity * global.TARGET_STORAGE_SUM_RATIO > room.terminal.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT
+				&& global.storageCapacity * global.TARGET_STORAGE_SUM_RATIO > room.storage.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT
+				&& !room._isReceivingEnergy
 				&& room.storage.store.energy < global.MAX_STORAGE_ENERGY[room.controller.level] + global.TERMINAL_ENERGY - room.terminal.store.energy
 			);
 
@@ -648,7 +648,7 @@ mod.extend = function () {
 
 			let targetRoom = _.min(targetRooms, 'storage.store.energy');
 
-			// console.log(`targetRoom: ${global.json(targetRoom)}`);
+			global.logSystem(targetRoom.name, `${targetRoom.name} storage: ${targetRoom.storage.store.energy} terminal: ${targetRoom.terminal.store.energy}`);
 
 			if (targetRoom instanceof Room) {
 
@@ -658,12 +658,19 @@ mod.extend = function () {
 
 					targetRoom._isReceivingEnergy = true;
 
-					let response = that.terminal.send('energy', transactionAmount, targetRoom.name, 'have fun');
+					if (global.TERMINAL_BROKER_TRANSFER_ENERGY) {
+						let response = that.terminal.send('energy', transactionAmount, targetRoom.name, 'have fun');
 
-					if (global.DEBUG)
-						global.logSystem(that.name, `Transferring ${global.Util.formatNumber(transactionAmount)} energy to ${targetRoom.name} ${targetRoomCharge}: ${global.translateErrorCode(response)}`);
+						if (global.DEBUG)
+							global.logSystem(that.name, `Transferring ${global.Util.formatNumber(transactionAmount)} energy to ${targetRoom.name} ${targetRoomCharge}: ${global.translateErrorCode(response)}`);
 
-					transacting = response === OK;
+						transacting = response === OK;
+					} else {
+						console.log(`TERMINAL_BROKER_TRANSFER_ENERGY: ${global.TERMINAL_BROKER_TRANSFER_ENERGY}`);
+						if (global.DEBUG)
+							global.logSystem(that.name, `CAN Transferring ${global.Util.formatNumber(transactionAmount)} energy to ${targetRoom.name} ${targetRoomCharge}`);
+
+					}
 				};
 
 				let transactionCost = Game.market.calcTransactionCost(global.ENERGY_BALANCE_TRANSFER_AMOUNT, this.name, targetRoom.name);

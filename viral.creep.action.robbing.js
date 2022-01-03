@@ -32,7 +32,7 @@ action.newTarget = function(creep){
         // after scoring iterate thru top candidates and do pathfinding to find an accessible target!
 
 
-        // console.log(creep.name, targets.length, target);
+        console.log(creep.name, targets.length, target);
 
         return target;
     }
@@ -54,7 +54,7 @@ action.work = function(creep){
     // KARL YOU NEED TO DOCUMENT THIS, RESULTS OF WITHDRAW ARE NOT HANDLED INTUITIVELY
     return this.targetCall(creep, resourcesDescending, (target) => {
         return (type, amount, capacity) => {
-            // console.log(creep.name, target);
+            console.log(creep.name, target);
             const score = amount ? creep.withdraw(target, type, amount) : 0;
             if (score) {
                 return {amount: capacity, score};
@@ -147,7 +147,7 @@ action.defaultStrategy.resourceScore = function(creep, target, resourceValue) {
 
         const multiplier = resourceValue(type);
 
-        // console.log(creep.name, 'resourceScore', type, amount, multiplier, range, logBase, adjacentValue);
+        console.log(creep.name, 'resourceScore', type, amount, multiplier, range, logBase, adjacentValue);
 
         return {amount, score: multiplier * amount * (adjacentValue - Math.log1p(range) * logBase)};
     }

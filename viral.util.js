@@ -300,7 +300,6 @@ viralUtil.terminalBroker = function (roomName = undefined) {
 
 	if (_.isUndefined(roomName)) {
 		for (let room of myRooms) {
-			console.log(`util at ${room.name}`);
 			room.terminalBroker();
 		}
 	} else
@@ -964,21 +963,32 @@ viralUtil.requiresEnergy = (roomName) => {
 
 	let room = Game.rooms[roomName];
 
-	// let requiresEnergy = room => (
-	// 	room.terminal.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO > room.terminal.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT &&
-	// 	room.storage.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO > room.storage.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT
-	// 	&& !room._isReceivingEnergy
-	// 	&& room.storage.store.energy < global.MAX_STORAGE_ENERGY[room.controller.level] + global.TERMINAL_ENERGY - room.terminal.store.energy
-	// );
+	let requiresEnergy = room => (
+		room.terminal.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO > room.terminal.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT
+		&& room.storage.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO > room.storage.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT
+		&& !room._isReceivingEnergy
+		&& room.storage.store.energy < global.MAX_STORAGE_ENERGY[room.controller.level] + global.TERMINAL_ENERGY - room.terminal.store.energy
+	);
 
 	console.log(`${room.terminal.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO > room.terminal.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT}`);
 	console.log(`${room.storage.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO > room.storage.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT}`);
+	console.log(`${!room._isReceivingEnergy}`);
 	console.log(`${room.storage.store.energy < global.MAX_STORAGE_ENERGY[room.controller.level] + global.TERMINAL_ENERGY - room.terminal.store.energy}`);
 
+	let targetRooms = _.filter(acceptedRooms, requiresEnergy);
+
+	for (const targetRoom of targetRooms)
+		console.log(`targetRooms: ${targetRoom.name} ${targetRoom.storage.store.energy}`);
+
+	let targetRoom = _.min(targetRooms, 'storage.store.energy');
+	if (targetRoom instanceof Room)
+		console.log(`TARGET ROOM: ${targetRoom.name}`);
+	else
+		console.log(`NO TRANSFER`);
 };
 
 
-
+// HERE comes room.memory.resources
 
 /*
 Orders[
