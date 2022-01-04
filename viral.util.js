@@ -967,13 +967,13 @@ viralUtil.requiresEnergy = (roomName) => {
 		room.terminal.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO > room.terminal.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT
 		&& room.storage.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO > room.storage.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT
 		&& !room._isReceivingEnergy
-		&& room.storage.store.energy < global.MAX_STORAGE_ENERGY[room.controller.level] + global.TERMINAL_ENERGY - room.terminal.store.energy
+		&& room.storage.store.energy < global.MAX_STORAGE_ENERGY[room.controller.level]
 	);
 
 	console.log(`${room.terminal.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO > room.terminal.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT}`);
 	console.log(`${room.storage.store.getCapacity() * global.TARGET_STORAGE_SUM_RATIO > room.storage.sum + global.ENERGY_BALANCE_TRANSFER_AMOUNT}`);
 	console.log(`${!room._isReceivingEnergy}`);
-	console.log(`${room.storage.store.energy < global.MAX_STORAGE_ENERGY[room.controller.level] + global.TERMINAL_ENERGY - room.terminal.store.energy}`);
+	console.log(`${room.storage.store.energy < global.MAX_STORAGE_ENERGY[room.controller.level]}`);
 
 	let targetRooms = _.filter(acceptedRooms, requiresEnergy);
 
